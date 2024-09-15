@@ -527,6 +527,12 @@ object reasons {
     def withNode(offendingNode: errors.ErrorNode = this.offendingNode) = InsufficientPermission(offendingNode.asInstanceOf[LocationAccess])
   }
 
+  case class PermExceedsOne(offendingNode: LocationAccess) extends AbstractErrorReason {
+    val id = "perm.exceeds.one"
+    def readableMessage: String = s"The permission of $offendingNode may be greater than one."
+    def withNode(offendingNode: errors.ErrorNode = this.offendingNode) = PermExceedsOne(offendingNode.asInstanceOf[LocationAccess])
+  }
+
   case class InvalidPermMultiplication(offendingNode: PermMul) extends AbstractErrorReason {
     val id = "invalid.perm.multiplication"
     def readableMessage = s"Permission multiplication might not be possible, as an operand might contain epsilons."
