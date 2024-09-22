@@ -732,11 +732,11 @@ object FastParser extends PosParser[Char, String] {
 
 /* pruned inhaleExhale, applying, forperm, quant, let, seqLength, setTypedEmpty,
  *  explicitSetNonEmpty, multiSetTypedEmpty, explicitMultisetNonEmpty, seqTypedEmpty, explicitSeqNonEmpty,
- *  seqRange, perm
+ *  seqRange
  */
   lazy val atom: P[PExp] = P(ParserExtension.newExpAtStart | integer | booltrue | boolfalse | nul
     | old | result | unExp | fapp | typedFapp
-    | "(" ~ exp ~ ")" | accessPred
+    | "(" ~ exp ~ ")" | accessPred | perm
     | idnuse | ParserExtension.newExpAtEnd)
 
 
@@ -846,8 +846,8 @@ object FastParser extends PosParser[Char, String] {
     case None => a
   }}
 
-  lazy val accessPredImpl: P[PAccPred] = P((keyword("acc") ~/ "(" ~ locAcc ~ ("," ~ ("1" | "write")).? ~ ")").map {
-    case loc => PAccPred(loc, PFullPerm())
+  lazy val accessPredImpl: P[PAccPred] = P((keyword("acc") ~/ "(" ~ locAcc ~ ("," ~ exp).? ~ ")").map {
+    case (loc, perms) => PAccPred(loc, perms.getOrElse(PFullPerm()))
   })
 
   lazy val accessPred: P[PAccPred] = P(accessPredImpl.map(acc => {
@@ -876,8 +876,12 @@ object FastParser extends PosParser[Char, String] {
 
   lazy val inhaleExhale: P[PExp] = P("[" ~ exp ~ "," ~ exp ~ "]").map { case (a, b) => PInhaleExhaleExp(a, b) }
 
+  /* 
+    Pruned wildcard and epsilon permissions, as well as the perm function.
+   */
   lazy val perm: P[PExp] =
-    P(keyword("none").map(_ => PNoPerm()) | keyword("wildcard").map(_ => PWildcard()) | keyword("write").map(_ => PFullPerm()) | ("perm" ~ parens(resAcc)).map(PCurPerm) | keyword("epsilon").map(_ => PEpsilon()))
+    P(keyword("none").map(_ => PNoPerm()) | /* keyword("wildcard").map(_ => PWildcard()) | */
+    keyword("write").map(_ => PFullPerm()) /* | ("perm" ~ parens(resAcc)).map(PCurPerm) | keyword("epsilon").map(_ => PEpsilon()) */ )
 
   lazy val let: P[PExp] = P(
     ("let" ~/ idndef ~ "==" ~ "(" ~ exp ~ ")" ~ "in" ~ exp).map { case (id, exp1, exp2) =>

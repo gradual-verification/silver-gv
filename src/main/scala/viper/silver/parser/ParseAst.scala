@@ -586,7 +586,14 @@ class PBinExp(val left: PExp, val opName: String, val right: PExp) extends POpAp
     case "/" => List(
       Map(POpApp.pArgS(0) -> Int, POpApp.pArgS(1) -> Int, POpApp.pResS -> Perm),
       Map(POpApp.pArgS(0) -> Perm, POpApp.pArgS(1) -> Int, POpApp.pResS -> Perm),
-      Map(POpApp.pArgS(0) -> Int, POpApp.pArgS(1) -> Int, POpApp.pResS -> Int)
+      Map(POpApp.pArgS(0) -> Int, POpApp.pArgS(1) -> Int, POpApp.pResS -> Int)//, 
+      //Map(POpApp.pArgS(0) -> Perm, POpApp.pArgS(1) -> Perm, POpApp.pResS -> Perm) 
+/* 
+    To allow Perm/Perm, uncomment the above line, and remove assert(r.typ = Int) on line 284 in Translator.scala in the exp function.
+    Then remove the right.typ != Int consistency error check on line 341 in Expression.scala in case class PermDiv.
+    Probably also create a new class in Silicon PermPermDiv for this case, as in 
+    https://github.com/viperproject/silicon/blob/master/src/main/scala/state/Terms.scala.
+ */
     )
     case "\\" | "%" => List(
       Map(POpApp.pArgS(0) -> Int, POpApp.pArgS(1) -> Int, POpApp.pResS -> Int))
