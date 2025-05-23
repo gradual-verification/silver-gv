@@ -671,6 +671,12 @@ object reasons {
     def withNode(offendingNode: errors.ErrorNode = this.offendingNode) = InsufficientPermission(offendingNode.asInstanceOf[LocationAccess])
   }
 
+  case class LocInHeap(offendingNode: LocationAccess) extends AbstractErrorReason {
+    val id = "loc.in.heap"
+    def readableMessage = s"Location $offendingNode may already exist in the heap."
+    def withNode(offendingNode: errors.ErrorNode = this.offendingNode) = LocInHeap(offendingNode.asInstanceOf[LocationAccess])
+  }
+
   case class InvalidPermMultiplication(offendingNode: PermMul) extends AbstractErrorReason {
     val id = "invalid.perm.multiplication"
     def readableMessage = s"Permission multiplication might not be possible, as an operand might contain epsilons."
