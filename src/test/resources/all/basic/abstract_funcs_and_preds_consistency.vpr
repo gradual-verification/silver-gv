@@ -6,7 +6,7 @@ predicate foo()
 function fun(): Bool { true }
 
 method test01() {
-  //:: ExpectedOutput(typechecker.error)
+  //:: ExpectedOutput(typechecker.error) 
   fold acc(foo())
   //:: ExpectedOutput(typechecker.error)
   unfold acc(foo())
@@ -26,6 +26,6 @@ function fun01(): Bool
 
 predicate bar() {
      acc(foo())
-     //:: ExpectedOutput(typechecker.error)
+     //:: ExpectedOutput(typechecker.error) 
   && unfolding acc(foo()) in true
 }
