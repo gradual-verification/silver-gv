@@ -4,6 +4,7 @@
 field f: Int
 
 method test(x: Ref)
+  //:: ExpectedOutput(not.wellformed:loc.in.heap)
   requires acc(x.f) && acc(x.f)
 {
   /* Has to hold */

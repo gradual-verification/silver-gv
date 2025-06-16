@@ -13,5 +13,6 @@ method m(ref : Ref)
     requires acc(pred())
 {
     //:: ExpectedOutput(typechecker.error)
+    // ExpectedOutput(parser.error)
     assert ref == unfolding pred() in 1
 }

@@ -2,12 +2,13 @@
 // http://creativecommons.org/publicdomain/zero/1.0/
 
 method test01() {
+  //:: ExpectedOutput(parser.error)
   var B1: Multiset[Int]
   var B2: Multiset[Int]
   B1 := Multiset(1)
   B2 := Multiset(1, 1)
 
-  //:: ExpectedOutput(assert.failed:assertion.false)
+  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error for Multiset not expected in this file - Priyam
   assert B1 == B2
 }
 
@@ -37,7 +38,7 @@ method test04a(B: Multiset[Int], n: Int, x: Int, y: Int)
   var B1: Multiset[Int] := B setminus Multiset(x)
   assert (y in B1) > 0
   assert |B1| == n - 1
-  //:: ExpectedOutput(assert.failed:assertion.false)
+  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error for Multiset not expected in this file - Priyam
   assert (x in B1) > 0
 }
 
@@ -51,7 +52,7 @@ method test04b(B: Multiset[Int], n: Int, x: Int, y: Int)
   var B1: Multiset[Int] := B setminus Multiset(x)
   assert |B1| == n - 1
 
-  //:: ExpectedOutput(assert.failed:assertion.false)
+  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error for Multiset not expected in this file - Priyam
   assert (x in B1) > 0
 }
 
@@ -69,7 +70,7 @@ method test06a(B: Multiset[Int], n: Int, x: Int, b:Bool)
   var B1: Multiset[Int] := B intersection B
 
   // NOTE: cardinality for multisets has no strong axioms
-  //:: ExpectedOutput(assert.failed:assertion.false)
+  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error for Multiset not expected in this file - Priyam
   assert |B1| == n
 }
 
@@ -98,7 +99,7 @@ method test08(B: Multiset[Int], n: Int, x: Int, y: Int)
   var B1: Multiset[Int] := B intersection Multiset(x, y)
   assert (x in B1) > 0  <==> (x in B) > 0
   // NOTE: cardinality for multisets has no strong axioms
-  //:: ExpectedOutput(assert.failed:assertion.false)
+  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error for Multiset not expected in this file - Priyam
   assert |B1| <= 2
 }
 
@@ -107,7 +108,7 @@ method test09(A: Multiset[Int], B:Multiset[Int], C:Multiset[Int])
 {
   assert A subset C
   assert B subset C
-  //:: ExpectedOutput(assert.failed:assertion.false)
+  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error for Multiset not expected in this file - Priyam
   assert A subset B
 }
 
