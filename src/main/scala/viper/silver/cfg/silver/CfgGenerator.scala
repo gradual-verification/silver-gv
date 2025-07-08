@@ -180,7 +180,10 @@ object CfgGenerator {
         val afterTarget = TmpLabel.generate("after")
         // process loop head
         addLabel(headTarget, addEmptyStmt = false)
-        addStatement(LoopHeadStmt(invs, afterTarget))
+        // if no invariant is specified, add one invariant which is True
+        // required for SymbExLogger later
+        val invs2 = if (invs.isEmpty) Seq(TrueLit()(pos = stmt.pos)) else invs
+        addStatement(LoopHeadStmt(invs2, afterTarget))
         addStatement(ConditionalJumpStmt(cond, loopTarget, afterTarget))
         // process loop body
         addLabel(loopTarget)

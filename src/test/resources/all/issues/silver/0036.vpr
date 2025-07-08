@@ -3,6 +3,8 @@
 
 predicate P(x: Ref) { true }
 
-//:: ExpectedOutput(typechecker.error)
+// only specified keywords are allowed in parsing revive the following line when it changes
+// ExpectedOutput(typechecker.error)
+//:: ExpectedOutput(parser.error)
 method test(p: P) { /* Using P as if it were a type */
 }

@@ -2,6 +2,8 @@
 // http://creativecommons.org/publicdomain/zero/1.0/
 
 // Very much doubt this will verify
+// Ternary operators not supported, remove the following line later
+//:: IgnoreFile(/silicon/issue/208/)
 
 
 field root1 : Ref

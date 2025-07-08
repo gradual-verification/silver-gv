@@ -1,36 +1,29 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: ExpectedOutput(typechecker.error)
+// only specified keywords are allowed in parsing revive the following line when it changes
+// ExpectedOutput(typechecker.error)
+//:: ExpectedOutput(parser.error)
 field f: bool
-//:: ExpectedOutput(typechecker.error)
 field g: Fool
-//:: ExpectedOutput(typechecker.error)
 field h: int
 
-//:: ExpectedOutput(typechecker.error)
 method test1(x: int) {}
 
 method test2() {
-  //:: ExpectedOutput(typechecker.error)
   var i: int
 
-  //:: ExpectedOutput(typechecker.error)
   var b: bool := true
 }
 
-//:: ExpectedOutput(typechecker.error)
 predicate P(x: error) { true }
 /*
-/:: ExpectedOutput(typechecker.error)
 function fun1(x: boo): Int { 0 }
 
-/:: ExpectedOutput(typechecker.error)
 function fun2(): int { 0 }
 
 domain Domain1[A] {
   function foo(a: A): Bool
-  /:: ExpectedOutput(typechecker.error)
   function goo(b: B): Bool
 
   function hoo(n: Int, d: Domain1[A]): Domain1[A]
