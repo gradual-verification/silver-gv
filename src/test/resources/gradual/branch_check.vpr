@@ -109,6 +109,7 @@
    while (x1 > 1)
      invariant ? && true 
    {
+     //:: ExpectedOutput(assert.failed:assertion.false)
      assert x1 < 0
      x1 := x1 - 1
    }
