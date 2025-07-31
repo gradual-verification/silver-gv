@@ -374,9 +374,7 @@ object FastParser extends PosParser[Char, String] {
         Seq()
     }
 
-    var warnings = Seq.empty[ParseWarning]
-
-    warnings = (warnings /: globalMacros)(_ ++ allParametersUsedInBody(_))
+    var warnings = globalMacros.foldLeft(Seq.empty[ParseWarning])(_ ++ allParametersUsedInBody(_))
 
     globalMacros.foreach(allParametersUsedInBody(_))
 
@@ -421,7 +419,7 @@ object FastParser extends PosParser[Char, String] {
       // Collect local macro definitions
       val localMacros = method.deepCollect { case n: PDefine => n }
 
-      warnings = (warnings /: localMacros)(_ ++ allParametersUsedInBody(_))
+      warnings = localMacros.foldLeft(warnings)(_ ++ allParametersUsedInBody(_))
 
       // Remove local macro definitions from method
       val methodWithoutMacros =
