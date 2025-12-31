@@ -4,9 +4,11 @@
 //
 // Copyright (c) 2011-2019 ETH Zurich.
 
+// Tested with JVM versions 11, 17, and 21.
+
 // Settings common to Silver and backends
 // Compilation settings
-ThisBuild / scalaVersion := "2.12.14"
+ThisBuild / scalaVersion := "2.12.18"
 ThisBuild / scalacOptions ++= Seq(
   "-encoding", "UTF-8",               // Enforce UTF-8, instead of relying on properly set locales
   "-deprecation",                     // Warn when using deprecated language features
