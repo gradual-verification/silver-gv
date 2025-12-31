@@ -4,6 +4,8 @@
 //
 // Copyright (c) 2011-2019 ETH Zurich.
 
+// Tested with JVM versions 11, 17, and 21.
+
 // Settings common to Silver and backends
 // Compilation settings
 
