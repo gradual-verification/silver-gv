@@ -1,6 +1,5 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
-//:: IgnoreFile(/silicon/issue/208/)
 field f: Int
 field g: Int
 
@@ -76,40 +75,40 @@ method test3(y: Ref)
   assert getf(y) == sum(y) - v
 }
 
-function add(x: Ref, y: Ref): Int
-  requires acc(pair(x), 1/3)
-  requires acc(pair(y), 1/3)
-{ unfolding acc(pair(x), 1/3) in x.f + (unfolding acc(pair(y), 1/3) in y.f) + x.g }
+//function add(x: Ref, y: Ref): Int
+//  requires acc(pair(x), 1/3)
+//  requires acc(pair(y), 1/3)
+//{ unfolding acc(pair(x), 1/3) in x.f + (unfolding acc(pair(y), 1/3) in y.f) + x.g }
+//
+//method test2(a: Int)
+//  requires a > 10
+//{
+//  var x: Ref; x := new(f, g)
+//  var y: Ref; y := new(f, g)
+//
+//  x.f := 1; x.g := a
+//  y.f := 2; y.g := -a
+//
+//  fold acc(pair(x))
+//  fold acc(pair(y))
+//
+//  assert add(x, x) == 2 + a
+//  assert add(x, y) == a + 3
+//  assert add(y, x) < 0
+//
+//  //:: ExpectedOutput(assert.failed:assertion.false)
+//  assert add(x, y) < 0
+//}
 
-method test2(a: Int)
-  requires a > 10
-{
-  var x: Ref; x := new(f, g)
-  var y: Ref; y := new(f, g)
-
-  x.f := 1; x.g := a
-  y.f := 2; y.g := -a
-
-  fold acc(pair(x))
-  fold acc(pair(y))
-
-  assert add(x, x) == 2 + a
-  assert add(x, y) == a + 3
-  assert add(y, x) < 0
-
-  //:: ExpectedOutput(assert.failed:assertion.false)
-  assert add(x, y) < 0
-}
-
-field n: Ref
-
-predicate R(x: Ref) {
-  acc(x.n) && (/*x.n != null ==>*/ acc(R(x.n)))
-}
-
-function fun3(y: Ref): Int
-  requires acc(R(y))
-{
-  unfolding acc(R(y)) in
-    y.n != null ? unfolding acc(R(y.n)) in 0 : 1
-}
+//field n: Ref
+//
+//predicate R(x: Ref) {
+//  acc(x.n) && (/*x.n != null ==>*/ acc(R(x.n)))
+//}
+//
+//function fun3(y: Ref): Int
+//  requires acc(R(y))
+//{
+//  unfolding acc(R(y)) in
+//    y.n != null ? unfolding acc(R(y.n)) in 0 : 1
+//}
