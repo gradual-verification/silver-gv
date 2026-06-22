@@ -21,6 +21,7 @@ method test01(x: Ref)
 
 
 predicate Rec(x: Ref) {
+  //:: ExpectedOutput(parser.error)
   acc(x.f) && acc(x.g) && (x.g != null ==> acc(Rec(x.g)) && unfolding acc(Rec(x.g)) in x.f < x.g.f)
 }
 

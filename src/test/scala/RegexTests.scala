@@ -4,8 +4,9 @@
 //
 // Copyright (c) 2011-2019 ETH Zurich.
 
+// revive the following import when the tests
+// using it are active
 import java.nio.file.Paths
-
 import scala.collection.mutable
 import TestHelpers.{FileComparisonHelper, MockSilFrontend}
 import org.scalatest.funsuite.AnyFunSuite
