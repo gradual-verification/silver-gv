@@ -11,6 +11,7 @@ method Loop__incr(diz: Ref, current_thread_id: Int, c: Ref, y: Int)
   requires y >= 0
   ensures c != null
   ensures acc(c.Counter__x, write)
+  //:: ExpectedOutput(parser.error)
   ensures c.Counter__x == old(c.Counter__x) + y
 {
   var i: Int

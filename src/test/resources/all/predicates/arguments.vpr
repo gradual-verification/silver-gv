@@ -51,10 +51,10 @@ method t2b(this: Ref)
 }
 
 method t3(this: Ref, b: Bool)
+    //:: UnexpectedOutput(not.wellformed:insufficient.permission, /silicon/issue/36/)
     requires acc(this.unrelatedField, write)
     requires acc(valid(this, b), write)
     requires acc(valid(this, !b), write)
-    //:: UnexpectedOutput(not.wellformed:insufficient.permission, /silicon/issue/36/)
     requires (unfolding acc(valid(this, false), write) in ((this.g) == 2))
     ensures acc(valid(this, b), write)
     ensures acc(valid(this, !b), write)
@@ -66,10 +66,10 @@ method t3(this: Ref, b: Bool)
 }
 
 method t3a(this: Ref, b: Bool)
+    //:: UnexpectedOutput(not.wellformed:insufficient.permission, /silicon/issue/36/)
     requires acc(this.unrelatedField, write)
     requires acc(valid(this, b), write)
     requires acc(valid(this, !b), write)
-    //:: UnexpectedOutput(not.wellformed:insufficient.permission, /silicon/issue/36/)
     requires (unfolding acc(valid(this, false), write) in ((this.g) == 2))
     ensures acc(valid(this, b), write)
     ensures acc(valid(this, !b), write)

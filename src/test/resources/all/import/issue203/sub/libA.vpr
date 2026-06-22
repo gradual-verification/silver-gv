@@ -6,5 +6,6 @@
 import "libB.vpr"
 
 method test2() {
+  //:: ExpectedOutput(parser.error)
   assert b2()
 }

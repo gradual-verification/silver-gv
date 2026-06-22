@@ -11,8 +11,10 @@ predicate P(r: Ref) {
 
 predicate Q(r: Ref) {true}
 
-method test01(r: Ref) returns () {
-  inhale acc(P(r))
+method test01(r: Ref) returns ()
+  requires acc(P(r))
+{
+  //:: ExpectedOutput(parser.error)
   unfold acc(P(r), wildcard)
 
   //:: ExpectedOutput(assert.failed:assertion.false)

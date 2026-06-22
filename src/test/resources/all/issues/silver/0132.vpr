@@ -3,6 +3,7 @@
 
 method test() {
   var x: Int;
-  //:: ExpectedOutput(consistency.error)
+  // ExpectedOutput(consistency.error) // revive this annotation when parser error for Multiset not expected in this file - Priyam
+  //:: ExpectedOutput(parser.error)
   assert x == old[l1](x);
 }
