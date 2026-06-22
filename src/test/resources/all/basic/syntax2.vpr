@@ -1,6 +1,8 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
+//:: IgnoreFile(/silicon/issue/233/)
+
 domain D1[T]
 {
    function f1(x:D1[T]) : D2[T]

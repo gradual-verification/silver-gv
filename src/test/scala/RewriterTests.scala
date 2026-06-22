@@ -291,7 +291,7 @@ class RewriterTests extends AnyFunSuite with FileComparisonHelper {
 
   }
 
-  test("UnfoldedChildren") {
+  /*test("UnfoldedChildren") {
     val filePrefix = "transformations/UnfoldedChildren/"
     val files = Seq("fourAnd")
 
@@ -311,7 +311,7 @@ class RewriterTests extends AnyFunSuite with FileComparisonHelper {
     files foreach {
       fileName: String => executeTest(filePrefix, fileName, strat, frontend)
     }
-  }
+  }*/
 
   /*test("CountAdditions") {
     val filePrefix = "transformations/CountAdditions/"

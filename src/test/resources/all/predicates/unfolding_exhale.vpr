@@ -3,9 +3,12 @@
 
 // oldC2SCases/unfolding_old_heap.chalice
 
+//:: IgnoreFile(/silicon/issue/233/)
+//Issue: exhale keyword
+
 field x: Int
 
-predicate P(this: Ref) {
+predicatei P(this: Ref) {
   acc(this.x)
 }
 

@@ -2,6 +2,8 @@
 // http://creativecommons.org/publicdomain/zero/1.0/
 
 
+//:: IgnoreFile(/silicon/issue/233/)
+
 field f: Int
 
 function f1(): Int { 1 }

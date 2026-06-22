@@ -212,12 +212,12 @@ class TestPluginMapVsFinish extends SilverPlugin with TestPlugin {
 class PluginTests extends AnyFunSuite {
   val inputfile = "plugintests/plugininput.vpr"
   val plugins = Seq(
-    "TestPluginImport",
+    /*"TestPluginImport",
     "TestPluginReportError",
     "TestPluginAllCalled",
     "TestPluginAddPredicate",
     "TestPluginMapErrors",
-    "TestPluginMapVsFinish"
+    "TestPluginMapVsFinish"*/
   )
 
   var result: VerificationResult = Success

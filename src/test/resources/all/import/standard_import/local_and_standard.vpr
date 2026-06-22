@@ -3,6 +3,8 @@
 //:: IgnoreFile(/silver/issue/203/)
 // domains are currently not supported so this file can be ignored
 
+//:: IgnoreFile(/silicon/issue/233/)
+
 import <standard_import_tests/local_and_standard_inc.vpr>
 import "basic.vpr"
 

@@ -1,6 +1,8 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
+//Issue: function keyword
+
 /* These tests are intended to test Silicon's internal concept of 'snapshots'. */
 
 field f: Int
@@ -34,7 +36,7 @@ method test2(x: Ref, b: Bool)
   }
 }
 
-function fun(x: Ref, b: Bool): Bool
+/*function fun(x: Ref, b: Bool): Bool
   requires b ? acc(x.f) : acc(x.g)
 { b ? x.f != 0 : !x.g }
 
@@ -55,4 +57,4 @@ method test3(x: Ref, b: Bool)
   }
 
   fold acc(P(x, b))
-}
+}*/

@@ -364,13 +364,13 @@ class FastParser {
 
   def atomReservedKw[$: P]: P[PExp] = {
     reservedKwMany(
-      StringIn("true", "false", "null", "old", "result", "acc", "none", "wildcard", "write", "epsilon", "perm", "let", "forall", "exists", "forperm",
-        "unfolding", "applying", "asserting", "Set", "Seq", "Multiset", "Map", "range", "domain", "new"),
+      StringIn("true", "false", "null", /*"old",*/ "result", "acc", "none", "wildcard", "write", "epsilon", "perm", "let", /*"forall",*/ "exists", "forperm",
+        /*"unfolding", "applying", "asserting", "Set", "Seq", "Multiset", "Map", "range", "domain",*/ "new"),
       str => pos => str match {
         case "true" => Pass.map(_ => PBoolLit(PReserved(PKw.True)(pos))(_))
         case "false" => Pass.map(_ => PBoolLit(PReserved(PKw.False)(pos))(_))
         case "null" => Pass.map(_ => PNullLit(PReserved(PKw.Null)(pos))(_))
-        case "old" => old.map(_(PReserved(PKwOp.Old)(pos)))
+        //case "old" => old.map(_(PReserved(PKwOp.Old)(pos)))
         case "result" => Pass.map(_ => PResultLit(PReserved(PKw.Result)(pos))(_))
         case "acc" => accessPredImpl.map(_(PReserved(PKwOp.Acc)(pos)))
         case "none" => Pass.map(_ => PNoPerm(PReserved(PKw.None)(pos))(_))
@@ -379,18 +379,18 @@ class FastParser {
         case "epsilon" => Pass.map(_ => PEpsilon(PReserved(PKw.Epsilon)(pos))(_))
         case "perm" => perm.map(_(PReserved(PKwOp.Perm)(pos)))
         case "let" => let.map(_(PReserved(PKwOp.Let)(pos)))
-        case "forall" => forall.map(_(PReserved(PKw.Forall)(pos)))
+        //case "forall" => forall.map(_(PReserved(PKw.Forall)(pos)))
         case "exists" => exists.map(_(PReserved(PKw.Exists)(pos)))
         case "forperm" => forperm.map(_(PReserved(PKw.Forperm)(pos)))
-        case "unfolding" => unfolding.map(_(PReserved(PKwOp.Unfolding)(pos)))
-        case "applying" => applying.map(_(PReserved(PKwOp.Applying)(pos)))
-        case "asserting" => asserting.map(_(PReserved(PKwOp.Asserting)(pos)))
-        case "Set" => setConstructor.map(_(PReserved(PKwOp.Set)(pos)))
-        case "Seq" => seqConstructor.map(_(PReserved(PKwOp.Seq)(pos)))
-        case "Multiset" => multisetConstructor.map(_(PReserved(PKwOp.Multiset)(pos)))
-        case "Map" => mapConstructor.map(_(PReserved(PKwOp.Map)(pos)))
-        case "range" => mapRange.map(_(PReserved(PKwOp.Range)(pos)))
-        case "domain" => mapDomain.map(_(PReserved(PKwOp.Domain)(pos)))
+        //case "unfolding" => unfolding.map(_(PReserved(PKwOp.Unfolding)(pos)))
+        //case "applying" => applying.map(_(PReserved(PKwOp.Applying)(pos)))
+        //case "asserting" => asserting.map(_(PReserved(PKwOp.Asserting)(pos)))
+        //case "Set" => setConstructor.map(_(PReserved(PKwOp.Set)(pos)))
+        //case "Seq" => seqConstructor.map(_(PReserved(PKwOp.Seq)(pos)))
+        //case "Multiset" => multisetConstructor.map(_(PReserved(PKwOp.Multiset)(pos)))
+        //case "Map" => mapConstructor.map(_(PReserved(PKwOp.Map)(pos)))
+        //case "range" => mapRange.map(_(PReserved(PKwOp.Range)(pos)))
+        //case "domain" => mapDomain.map(_(PReserved(PKwOp.Domain)(pos)))
         case "new" => newExp.map(_(PReserved(PKw.New)(pos)))
       }
     ).pos
@@ -872,14 +872,14 @@ class FastParser {
 
   def memberReservedKw[$: P]: P[PAnnotationsPosition => PMember] = {
     reservedKwMany(
-      StringIn("import", "define", "field", "method", /*"domain",*/ "function", "predicate"),
+      StringIn("import", "define", "field", "method", /*"domain", "function",*/ "predicate"),
       str => pos => str match {
         case "import" => preambleImport.map(_(PReserved(PKw.Import)(pos)))
         case "define" => defineDecl.map(_(PReserved(PKw.Define)(pos)))
         case "field" => fieldDecl.map(_(PReserved(PKw.Field)(pos)))
         case "method" => methodDecl.map(_(PReserved(PKw.Method)(pos)))
         //case "domain" => domainDecl.map(_(PReserved(PKw.Domain)(pos)))
-        case "function" => functionDecl.map(_(PReserved(PKw.Function)(pos)))
+        //case "function" => functionDecl.map(_(PReserved(PKw.Function)(pos)))
         case "predicate" => predicateDecl.map(_(PReserved(PKw.Predicate)(pos)))
       }
     )

@@ -1,22 +1,22 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
+//:: IgnoreFile(/silicon/issue/208/)
 
 // may not work with full permission
 
 field f: Int
 
-// old is not parsed
-// method test01(x: Ref) returns (b: Bool)
-//   requires acc(x.f)
-//   ensures ? && x.f == old(x.f)
-// {
-//   while (b)
-//     invariant acc(x.f, 1)
-//   {
-//     b := !b
-//   }
-// }
+/*method test01(x: Ref) returns (b: Bool)
+  requires acc(x.f)
+  ensures ? && x.f == old(x.f)
+{
+  while (b)
+    invariant acc(x.f, 1)
+  {
+    b := !b
+  }
+}*/
 
 
 method test02(x: Ref) returns (b: Bool)

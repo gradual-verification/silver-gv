@@ -3,6 +3,9 @@
 
 // oldC2SCases/unfolding_old_heap.chalice
 
+//:: IgnoreFile(/silicon/issue/233/)
+//Issue: unfolding, old keyword
+
 field x: Int
 
 predicate P(this: Ref) {

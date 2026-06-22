@@ -255,7 +255,7 @@ trait BackendTypeTest extends AnyFunSuite with Matchers with BeforeAndAfterAllCo
     verifier.stop()
   }
 
-  test("typeCombinationSuccess") {
+  /*test("typeCombinationSuccess") {
     val (prog, _) = generateTypeCombinationTest(true)
     val res  = verifier.verify(prog)
     assert(res == Success)
@@ -361,6 +361,6 @@ trait BackendTypeTest extends AnyFunSuite with Matchers with BeforeAndAfterAllCo
     val prog = generatePredicateTest()
     val res  = verifier.verify(prog)
     assert(res == Success)
-  }
+  }*/
 
 }

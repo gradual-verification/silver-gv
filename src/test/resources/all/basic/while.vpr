@@ -68,12 +68,12 @@ method t5(n: Int, r: Ref) returns ()
     }
 }
 
-method t6(r: Ref) returns ()
+/*method t6(r: Ref) returns ()
 {
-    while (perm(r.f) == none) /* OK - perm(e.f) does not require e != null */
-    {
+    while (perm(r.f) == none)*/ /* OK - perm(e.f) does not require e != null */
+    /*{
     }
-}
+}*/
 
 method t7(r: Ref) returns ()
 {

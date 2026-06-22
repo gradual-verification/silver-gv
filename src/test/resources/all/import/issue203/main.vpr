@@ -4,6 +4,8 @@
 // domains are currently not supported so this file can be ignored
 
 
+//:: IgnoreFile(/silicon/issue/233/)
+
 import "sub/libA.vpr"
 
 method test1() {

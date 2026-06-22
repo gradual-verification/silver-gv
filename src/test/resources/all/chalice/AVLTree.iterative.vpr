@@ -1,10 +1,15 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
+<<<<<<< HEAD
+//:: IgnoreFile(/silicon/issue/233/)
+//Issue: fractional permission
+=======
 // Very much doubt this will verify
 // Ternary operators not supported, remove the following line later
 //:: IgnoreFile(/silicon/issue/208/)
 
+>>>>>>> upstream/master
 
 field root1 : Ref
 

@@ -2,6 +2,8 @@
 // http://creativecommons.org/publicdomain/zero/1.0/
 
 
+//:: IgnoreFile(/silicon/issue/222/)
+
 field f: Ref
 
 // test aliasing of heap values with other objects

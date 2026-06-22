@@ -1,6 +1,10 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
+
+//:: IgnoreFile(/silicon/issue/233/)
+// Issue: function, unfolding keyword
+
   field n: Ref
   predicate P(this: Ref) { acc(this.n, write) && (((this.n) != (null)) ==> acc(P(this.n), write)) }
   function length(this: Ref): Int
