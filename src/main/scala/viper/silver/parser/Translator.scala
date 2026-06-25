@@ -192,6 +192,20 @@ case class Translator(program: PProgram) {
         LocalVarAssign(LocalVar(idnuse.name, ttyp(idnuse.decl.get.asInstanceOf[PAssignableVarDecl].typ))(pos, SourcePNodeInfo(idnuse)), exp(rhs))(pos, info)
       case PAssign(PDelimited(field: PFieldAccess), _, rhs) =>
         FieldAssign(FieldAccess(exp(field.rcv), findField(field.idnref))(field, SourcePNodeInfo(field)), exp(rhs))(pos, info)
+      case PAssign(PDelimited(lookup: PLookup), _, rhs) =>
+        lookup.base.typ match {
+          case _: PSeqType => SeqIndexAssign(SeqIndex(exp(lookup.base), exp(lookup.idx))(pos, info), exp(rhs))(pos, info)
+          case _: PArrayType => SeqIndexAssign(SeqIndex(exp(lookup.base), exp(lookup.idx))(pos, info), exp(rhs))(pos, info)
+          case _: PMapType => MapLookupAssign(MapLookup(exp(lookup.base), exp(lookup.idx))(pos, info), exp(rhs))(pos, info)
+          case t => sys.error(s"unexpected type $t for array/map lookup assignment")
+        }
+      case PAssign(PDelimited(update: PUpdate), _, rhs) =>
+        update.base.typ match {
+          case _: PSeqType => SeqIndexAssign(SeqIndex(exp(update.base), exp(update.key))(pos, info), exp(rhs))(pos, info)
+          case _: PArrayType => SeqIndexAssign(SeqIndex(exp(update.base), exp(update.key))(pos, info), exp(rhs))(pos, info)
+          case _: PMapType => MapLookupAssign(MapLookup(exp(update.base), exp(update.key))(pos, info), exp(rhs))(pos, info)
+          case t => sys.error(s"unexpected type $t for array/map update assignment")
+        }
       case lv: PVars =>
         // there are no declarations in the Viper AST; rather they are part of the scope signature
         lv.assign map stmt getOrElse Statements.EmptyStmt

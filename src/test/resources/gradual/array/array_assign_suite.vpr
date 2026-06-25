@@ -1,0 +1,8 @@
+method binary_search(a: Int , key: Int) returns (index: Int)
+{
+    var ax: Array[Int] := Array[Int](10)
+    ax[10] := 10
+    ax[1] := 42
+    var g: Array[Bool] := Array[Bool](10)
+    g[1] := false
+}

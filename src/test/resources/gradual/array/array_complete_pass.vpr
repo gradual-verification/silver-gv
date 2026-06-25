@@ -34,7 +34,6 @@ method binary_search(a: Array[Int], key: Int) returns (index: Int)
       }
     }
   }
-  //a[10] := 67 //just to check this type of thing works.
 }
 
 

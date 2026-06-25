@@ -51,6 +51,8 @@ object Nodes {
           case NewStmt(target, fields) => Seq(target) ++ fields
           case LocalVarAssign(lhs, rhs) => Seq(lhs, rhs)
           case FieldAssign(lhs, rhs) => Seq(lhs, rhs)
+          case SeqIndexAssign(lhs, rhs) => Seq(lhs, rhs)
+          case MapLookupAssign(lhs, rhs) => Seq(lhs, rhs)
           case Fold(e) => Seq(e)
           case Unfold(e) => Seq(e)
           case Package(e, proofScript) => Seq(e, proofScript)

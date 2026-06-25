@@ -300,8 +300,10 @@ case class TypeChecker(names: NameAnalyser) {
         messages ++= FastMessaging.message(field, s"undeclared field `${field.name}`")
     case lookup@PLookup(base, _, _, _) =>
       checkAssignTarget(base)
+      checkInternal(lookup)
     case update@PUpdate(base, _, _, _, _, _) =>
       checkAssignTarget(base)
+      checkInternal(update)
     case _ => // ignore other expression types
   }
 

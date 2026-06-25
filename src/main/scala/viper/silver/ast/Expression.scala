@@ -808,11 +808,15 @@ case class SeqAppend(left: Exp, right: Exp)(val pos: Position = NoPosition, val 
 }
 
 /** Access to an element of a sequence at a given index position (starting at 0). */
-case class SeqIndex(s: Exp, idx: Exp)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends SeqExp with PrettyOperatorExpression {
+case class SeqIndex(s: Exp, idx: Exp)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends SeqExp with PrettyOperatorExpression with Lhs {
   override lazy val check : Seq[ConsistencyError] =
     (if(!s.typ.isInstanceOf[SeqType]) Seq(ConsistencyError(s"Expected sequence type but found ${s.typ}", s.pos)) else Seq()) ++
     (if(!(idx isSubtype Int)) Seq(ConsistencyError(s"Second parameter of sequence-access expression must be Int, but found ${idx.typ}", idx.pos)) else Seq())
-  lazy val typ = s.typ.asInstanceOf[SeqType].elementType
+  lazy val typ = s.typ match {
+    case st: SeqType => st.elementType
+    case at: ArrayType => at.elementType
+    case _ => sys.error(s"Unexpected type ${s.typ} for SeqIndex")
+  }
   def getArgs = Seq(s,idx)
   def withArgs(newArgs: Seq[Exp]) = SeqIndex(newArgs.head,newArgs(1))(pos, info, errT)
   override def priority: Int = 10
@@ -846,8 +850,8 @@ case class SeqDrop(s: Exp, n: Exp)(val pos: Position = NoPosition, val info: Inf
 /** Is the element 'elem' contained in the sequence 'seq'? */
 case class SeqContains(elem: Exp, s: Exp)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends SeqExp with PrettyBinaryExpression {
   override lazy val check : Seq[ConsistencyError] =
-    (if(!s.typ.isInstanceOf[SeqType]) Seq(ConsistencyError(s"Expected sequence type but found ${s.typ}", s.pos)) else Seq()) ++
-    (if(!(elem isSubtype s.typ.asInstanceOf[SeqType].elementType)) Seq(ConsistencyError(s"Expected type ${s.typ.asInstanceOf[SeqType].elementType} but found ${elem.typ}", elem.pos)) else Seq())
+    (if(!s.typ.isInstanceOf[SeqType] && !s.typ.isInstanceOf[ArrayType]) Seq(ConsistencyError(s"Expected sequence or array type but found ${s.typ}", s.pos)) else Seq()) ++
+    (if(!(elem isSubtype ExpressionUtils.elementTypeOf(s.typ))) Seq(ConsistencyError(s"Expected type ${ExpressionUtils.elementTypeOf(s.typ)} but found ${elem.typ}", elem.pos)) else Seq())
   lazy val priority = 7
   lazy val fixity = Infix(LeftAssociative)
   lazy val left: PrettyExpression = elem
@@ -861,9 +865,9 @@ case class SeqContains(elem: Exp, s: Exp)(val pos: Position = NoPosition, val in
 /** The same sequence as 'seq', but with the element at index 'idx' replaced with 'elem'. */
 case class SeqUpdate(s: Exp, idx: Exp, elem: Exp)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends SeqExp {
   override lazy val check : Seq[ConsistencyError] =
-    (if(!s.typ.isInstanceOf[SeqType]) Seq(ConsistencyError(s"Expected sequence type but found ${s.typ}", s.pos)) else Seq()) ++
+    (if(!s.typ.isInstanceOf[SeqType] && !s.typ.isInstanceOf[ArrayType]) Seq(ConsistencyError(s"Expected sequence or array type but found ${s.typ}", s.pos)) else Seq()) ++
     (if(!(idx isSubtype Int)) Seq(ConsistencyError(s"Second parameter of sequence-update expression must be of Int type, but found ${idx.typ}", idx.pos)) else Seq()) ++
-    (if(!(elem isSubtype s.typ.asInstanceOf[SeqType].elementType)) Seq(ConsistencyError(s"Expected type ${s.typ.asInstanceOf[SeqType].elementType} but found ${elem.typ}", elem.pos)) else Seq()) ++
+    (if(!(elem isSubtype ExpressionUtils.elementTypeOf(s.typ))) Seq(ConsistencyError(s"Expected type ${ExpressionUtils.elementTypeOf(s.typ)} but found ${elem.typ}", elem.pos)) else Seq()) ++
     Consistency.checkPure(elem)
 
   lazy val desugaredAssumingIndexInRange : SeqExp = {
@@ -1109,7 +1113,7 @@ case class MapUpdate(base: Exp, key: Exp, value: Exp)(val pos: Position = NoPosi
 /**
   * Lookup of the value within the map `base` at the given `key`.
   */
-case class MapLookup(base : Exp, key : Exp)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends MapExp {
+case class MapLookup(base : Exp, key : Exp)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends MapExp with Lhs {
   lazy val typ : Type = base.typ.asInstanceOf[MapType].valueType
 
   override lazy val check : Seq[ConsistencyError] = base.typ match {
@@ -1299,6 +1303,15 @@ sealed abstract class DomainUnExp(val funct: UnOp) extends PrettyUnaryExpression
 
 /** Expressions which can appear on the left hand side of an assignment */
 sealed trait Lhs extends Exp
+
+/** Extract the element type from a collection type (SeqType or ArrayType). */
+object ExpressionUtils {
+  def elementTypeOf(t: Type): Type = t match {
+    case st: SeqType => st.elementType
+    case at: ArrayType => at.elementType
+    case _ => sys.error(s"Unexpected type $t")
+  }
+}
 
 /** Generic Expression to use to extend the AST.
   * New expression-typed AST nodes can be defined by creating new case classes extending this trait.

@@ -1,4 +1,0 @@
-method binary_search(a: Int ,  key: Int) returns (index: Int)
-{
-    a:=5
-}
