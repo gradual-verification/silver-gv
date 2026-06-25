@@ -16,6 +16,7 @@ import viper.silver.verifier.{ParseError, ParseWarning}
 import scala.collection.{immutable, mutable}
 import scala.util.{Failure, Success}
 import viper.silver.ast.HasLineColumn
+import viper.silver.parser
 
 case class SuffixedExpressionGenerator[+E <: PExp](func: PExp => E) extends (PExp => PExp) {
   override def apply(v1: PExp): E = func(v1)
@@ -162,7 +163,9 @@ object FastParserCompanion {
     // permission syntax
     PKwOp.Acc, PKw.Wildcard, PKw.Write, PKw.None, PKw.Epsilon, PKw.Perm,
     // modifiers
-    PKw.Unique
+    PKw.Unique,
+    //Arrays
+    PKw.Array
   )
 }
 
@@ -365,7 +368,7 @@ class FastParser {
   def atomReservedKw[$: P]: P[PExp] = {
     reservedKwMany(
       StringIn("true", "false", "null", /*"old",*/ "result", "acc", "none", "wildcard", "write", "epsilon", "perm", "let", /*"forall",*/ "exists", "forperm",
-        /*"unfolding", "applying", "asserting", "Set", "Seq", "Multiset", "Map", "range", "domain",*/ "new"),
+        /*"unfolding", "applying", "asserting", "Set", "Seq", "Multiset", "Map", "range", "domain",*/ "new", "Array"),
       str => pos => str match {
         case "true" => Pass.map(_ => PBoolLit(PReserved(PKw.True)(pos))(_))
         case "false" => Pass.map(_ => PBoolLit(PReserved(PKw.False)(pos))(_))
@@ -391,6 +394,7 @@ class FastParser {
         //case "Map" => mapConstructor.map(_(PReserved(PKwOp.Map)(pos)))
         //case "range" => mapRange.map(_(PReserved(PKwOp.Range)(pos)))
         //case "domain" => mapDomain.map(_(PReserved(PKwOp.Domain)(pos)))
+        case "Array" => arrayConstructor.map(_(PReserved(PKwOp.Array)(pos)))
         case "new" => newExp.map(_(PReserved(PKw.New)(pos)))
       }
     ).pos
@@ -626,7 +630,7 @@ class FastParser {
   //Remove multiset seq set GRADV
   def typReservedKw[$: P]: P[PType] = {
     reservedKwMany(
-      StringIn("Rational", "Int", "Bool", "Perm", "Ref"/*, "Seq", "Set", "Multiset", "Map"*/),
+      StringIn("Rational", "Int", "Bool", "Perm", "Ref", "Array"/*, "Seq", "Set", "Multiset", "Map"*/),
       str => pos => str match {
         case "Rational" => Pass.map { _ =>
             val p = pos.asInstanceOf[(HasLineColumn, HasLineColumn)]
@@ -637,6 +641,7 @@ class FastParser {
         case "Bool" => Pass.map(_ => PPrimitiv(PReserved(PKw.Bool)(pos))(_))
         case "Perm" => Pass.map(_ => PPrimitiv(PReserved(PKw.Perm)(pos))(_))
         case "Ref" => Pass.map(_ => PPrimitiv(PReserved(PKw.Ref)(pos))(_))
+        case "Array" => arrayType.map(_(PReserved(PKw.Array)(pos)))
         /*case "Seq" => seqType.map(_(PReserved(PKw.Seq)(pos)))
         case "Set" => setType.map(_(PReserved(PKw.Set)(pos)))
         case "Multiset" => multisetType.map(_(PReserved(PKw.Multiset)(pos)))
@@ -657,6 +662,8 @@ class FastParser {
   def multisetType[$: P]: P[PKw.Multiset => Pos => PMultisetType] = P(typ.brackets map { t => PMultisetType(_, t) })
 
   def mapType[$: P]: P[PKw.Map => Pos => PMapType] = P(pairArgument(typ, typ).brackets map { t => PMapType(_, t)})
+
+  def arrayType[$: P]: P[PKw.Array => Pos => PArrayType] = P(typ.brackets map {t => PArrayType(_, t)})
 
   /** Only for call-like macros, `idnuse`-like ones are parsed by `domainTyp`. */
   def macroType[$: P] : P[PMacroType] = funcApp.map(PMacroType(_))
@@ -703,6 +710,10 @@ class FastParser {
       { t => PExplicitSeq(_, t) }
     )
 
+
+
+
+
   def multisetConstructor[$: P]: P[PKwOp.Multiset => Pos => PExp] =
     builtinConstructor(typ, exp)(
       { case (t, g) => PEmptyMultiset(_, t, g) },
@@ -714,6 +725,10 @@ class FastParser {
       { case (t, g) => PEmptyMap(_, t, g) },
       { t => PExplicitMap(_, t) }
     )
+  def arrayConstructor[$: P]: P[PKwOp.Array => Pos => PExp] =
+    nonEmptyConstructor(typ, exp)(
+      {(e, t) => PArray(_, e, t)}
+    )
 
   def builtinConstructor[$: P, T, U, E <: PNode](types: => P[T], element: => P[E])(
     empty: (Option[PGrouped[PSym.Bracket, T]], PDelimited.Comma[PSym.Paren, Nothing]) => U,
@@ -724,6 +739,13 @@ class FastParser {
       case (t, es) if es.inner.length == 0 => empty(t, es.update(Nil))
       case (_, es) => nonEmpty(es)
     })
+  def nonEmptyConstructor[$: P, T, U, E <: PNode](types: => P[T], element: => P[E])(
+    nonEmpty: (PGrouped[PSym.Bracket, T], PDelimited.Comma[PSym.Paren, E]) => U
+  ): P[U] = P(types.brackets.lw ~~ (argList(element))
+    filter { case (_, es) => es.inner.length == 1 }
+    map {
+    case (e) => nonEmpty(e._1, e._2)
+  }).opaque("Expected an array size, found none")
 
   def lbracketExp[$: P]: P[PExp] = P((P(PSymOp.LBracket) ~ NoCut(exp) ~ (inhaleExhale | seqRange)) map {
     case (l, e, op) => op(l, e)
@@ -794,7 +816,12 @@ class FastParser {
 
   def annotatedStmt(implicit ctx : P[_]): P[PStmt] = P((annotation ~ stmt()) map (PAnnotatedStmt.apply _).tupled).pos
 
-  def assignTarget[$: P]: P[PExp with PAssignTarget] = P(fieldAcc | funcApp | idnuse)
+  def subscriptedAssignTarget[$: P]: P[PExp with PAssignTarget] =
+    P((idnuse ~~~ suffix.lw.rep).map { case (base, ss) =>
+      ss.foldLeft[PExp](base) { (t, a) => a(t) }.asInstanceOf[PExp with PAssignTarget]
+    })
+
+  def assignTarget[$: P]: P[PExp with PAssignTarget] = P(funcApp | subscriptedAssignTarget)
 
   // Parses any of `idn`, `idn(args)` or `... := exp` (where `...` is a comma
   // delimited sequence of field access, function application or identifier)

@@ -1025,6 +1025,9 @@ case class AnySetCardinality(s: Exp)(val pos: Position = NoPosition, val info: I
   def getArgs = Seq(s)
   def withArgs(newArgs: Seq[Exp]) = AnySetCardinality(newArgs.head)(pos, info, errT)
 }
+// --- Arrays (again, to the future me, im so sorry)
+sealed trait ArrayExp extends Exp
+
 
 // --- Mathematical maps
 
@@ -1186,6 +1189,9 @@ case class MapRange(base : Exp)(val pos: Position = NoPosition, val info: Info =
   def withArgs(newArgs: Seq[Exp]) : SetExp = MapRange(newArgs.head)(pos, info, errT)
 }
 
+case class ArrayInstance(elementType: Type, sz: Exp)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends ArrayExp {
+  override def typ: Type = ArrayType(elementType)
+}
 
 // --- Common functionality
 

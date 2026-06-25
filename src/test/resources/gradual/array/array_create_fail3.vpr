@@ -1,0 +1,4 @@
+method binary_search(a: Int , key: Int) returns (index: Int)
+{
+    var y: Array[Int] := false
+}

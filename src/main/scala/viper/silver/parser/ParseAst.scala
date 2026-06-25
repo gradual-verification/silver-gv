@@ -8,8 +8,9 @@ package viper.silver.parser
 
 import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
 import viper.silver.ast.utility.Visitor
-import viper.silver.ast.utility.rewriter.{Rewritable, StrategyBuilder, HasExtraVars, HasExtraValList}
+import viper.silver.ast.utility.rewriter.{HasExtraValList, HasExtraVars, Rewritable, StrategyBuilder}
 import viper.silver.ast.{Exp, FilePosition, HasLineColumn, Member, NoPosition, Position, SourcePosition, Stmt, Type}
+import viper.silver.parser.PDelimited.Comma
 import viper.silver.parser.TypeHelper._
 import viper.silver.verifier.ParseReport
 
@@ -181,6 +182,7 @@ object TypeHelper {
       PPairArgument(key, PReserved.implied(PSym.Comma), value)(NoPosition, NoPosition)
     ))(NoPosition, NoPosition)
   def MakeMultiset(typ: PType) = PMultisetType(PReserved.implied(PKw.Multiset), PGrouped.impliedBracket(typ))(NoPosition, NoPosition)
+  def MakeArray(typ: PType) = PArrayType(PReserved.implied(PKw.Array), PGrouped.impliedBracket(typ))(NoPosition, NoPosition)
 
   def commonSupertype(a: PType, b: PType): Option[PType] = {
     (a, b) match {
@@ -569,6 +571,14 @@ case class PMapType(map: PKw.Map, typ: PGrouped[PSym.Bracket, PPairArgument[PTyp
 
   override def withTypeArguments(s: Seq[PType]): PMapType =
     copy(typ = typ.update(PPairArgument(s(0), typ.inner.c, s(1))(typ.inner.pos)))(pos)
+}
+
+case class PArrayType(arr: PKw.Array, elementType: PGrouped[PSym.Bracket, PType])(val pos: (Position, Position)) extends PType with PGenericCollectionType
+{
+
+  override def update(newType: PType): PGenericCollectionType = copy(elementType = elementType.update(newType))(pos)
+
+  override def genericName: String = "Array"
 }
 
 /** Exists temporarily after parsing and is replaced with
@@ -1275,9 +1285,27 @@ sealed trait PSeqLiteral extends PCollectionLiteral {
   def pCollectionType(pType: PType) = if (pType.isUnknown) PUnknown() else MakeSeq(pType)
 }
 
+sealed trait PArrayLiteral extends PCollectionLiteral
+{
+  def pCollectionType(pType: PType) = if(pType.isUnknown) PUnknown() else MakeArray(pType)
+}
+
 case class PEmptySeq(op: PKwOp.Seq, pAnnotatedType: Option[PGrouped[PSym.Bracket, PType]], callArgs: PDelimited.Comma[PSym.Paren, Nothing])(val pos: (Position, Position)) extends PSeqLiteral with PEmptyCollectionLiteral
 
 case class PExplicitSeq(op: PKwOp.Seq, callArgs: PDelimited.Comma[PSym.Paren, PExp])(val pos: (Position, Position)) extends PSeqLiteral with PExplicitCollectionLiteral
+
+case class PArray(op: PKwOp.Array, elementType: PGrouped[PSym.Bracket, PType], sz: PDelimited.Comma[PSym.Paren, PExp])(val pos: (Position, Position)) extends PArrayLiteral with PCollectionLiteral {
+  override def callArgs: Comma[PSym.Paren, PExp] = sz
+
+  override def explicitType: Option[PType] = Option[PType](elementType.inner)
+
+  override def signatures: List[PTypeSubstitution] =
+    List(
+      Map(POpApp.pArgS(0) -> Int, POpApp.pResS -> MakeArray(pElementType))
+    )
+
+  override def pElementType: PType = elementType.inner
+}
 
 // [low..high)
 case class PRangeSeq(l: PSymOp.LBracket, low: PExp, ds: PSymOp.DotDot, high: PExp, r: PSymOp.RParen)(val pos: (Position, Position)) extends POpApp {
@@ -1296,6 +1324,7 @@ case class PLookup(base: PExp, l: PSymOp.LBracket, idx: PExp, r: PSymOp.RBracket
 
   override val signatures: List[PTypeSubstitution] = List(
     Map(POpApp.pArgS(0) -> MakeSeq(POpApp.pRes), POpApp.pArgS(1) -> Int),
+    Map(POpApp.pArgS(0) -> MakeArray(POpApp.pRes), POpApp.pArgS(1) -> Int),
     Map(POpApp.pArgS(0) -> MakeMap(keyType, POpApp.pRes))
   )
 }
@@ -1323,6 +1352,7 @@ case class PUpdate(base: PExp, l: PSymOp.LBracket, key: PExp, a: PSymOp.Assign, 
 
   override val signatures: List[PTypeSubstitution] = List(
     Map(POpApp.pArgS(0) -> MakeSeq(elementType), POpApp.pArgS(1) -> Int, POpApp.pResS -> MakeSeq(elementType)),
+    Map(POpApp.pArgS(0) -> MakeArray(elementType), POpApp.pArgS(1) -> Int, POpApp.pResS -> MakeArray(elementType)),
     Map(POpApp.pArgS(0) -> MakeMap(keyType, elementType), POpApp.pResS -> MakeMap(keyType, elementType))
   )
 }

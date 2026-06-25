@@ -1,0 +1,42 @@
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+/* Binary search in a sorted array */
+
+
+//Some notes on this: len(array) is not really a thing,
+//it parses because its defined for us here
+//this should be fixed eventually, but thats not the point of this test,
+//all we wanted here was to test syntax for basic array operations parses correctly
+method len(arr: Array[Int]) returns (sz: Int)
+{
+    sz := 10
+}
+
+method binary_search(a: Array[Int], key: Int) returns (index: Int)
+{
+  var low: Int := 0
+  var high: Int := len(a)
+  index := -1
+
+  while (low < high)
+  {
+    var mid: Int := (low + high) \ 2
+
+    if (a[mid] < key) {
+      low := mid + 1
+    } else {
+      if (key < a[mid]) {
+        high := mid
+      } else {
+        index := mid
+        high := mid
+      }
+    }
+  }
+  //a[10] := 67 //just to check this type of thing works.
+}
+
+
+
+/* Encoding of arrays */

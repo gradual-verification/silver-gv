@@ -1,0 +1,5 @@
+ method binary_search(a: Int , key: Int) returns (index: Int)
+ {
+    var Array: Int := 5
+ }
+

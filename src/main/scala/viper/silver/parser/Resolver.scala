@@ -277,30 +277,42 @@ case class TypeChecker(names: NameAnalyser) {
     }
   }
 
+  def checkAssignTarget(target: PExp): Unit = target match {
+    case idnuse: PIdnUseExp =>
+      idnuse.assignUse = true
+      if (idnuse.decls.nonEmpty) {
+        idnuse.filterDecls(_.isInstanceOf[PAssignableVarDecl])
+        if (idnuse.decl.isDefined)
+          check(idnuse, idnuse.decl.get.typ)
+        else if (idnuse.decls.isEmpty)
+          messages ++= FastMessaging.message(idnuse, s"expected an assignable identifier `${idnuse.name}` as lhs")
+        else
+          messages ++= FastMessaging.message(idnuse, s"ambiguous identifier `${idnuse.name}`, expected single parameter or local variable")
+      } else
+        messages ++= FastMessaging.message(idnuse, s"undeclared identifier `${idnuse.name}`, expected parameter or local variable")
+    case fa@PFieldAccess(_, _, field) =>
+      field.assignUse = true
+      if (field.decl.isDefined)
+        check(fa, field.decl.get.typ)
+      else if (field.decls.length > 1)
+        messages ++= FastMessaging.message(field, s"ambiguous field `${field.name}`")
+      else
+        messages ++= FastMessaging.message(field, s"undeclared field `${field.name}`")
+    case lookup@PLookup(base, _, _, _) =>
+      checkAssignTarget(base)
+    case update@PUpdate(base, _, _, _, _, _) =>
+      checkAssignTarget(base)
+    case _ => // ignore other expression types
+  }
+
   def checkAssign(stmt: PAssign): Unit = {
     // Check targets
-    stmt.targets.toSeq foreach {
-      case idnuse: PIdnUseExp =>
-        idnuse.assignUse = true
-        if (idnuse.decls.nonEmpty) {
-          idnuse.filterDecls(_.isInstanceOf[PAssignableVarDecl])
-          if (idnuse.decl.isDefined)
-            check(idnuse, idnuse.decl.get.typ)
-          else if (idnuse.decls.isEmpty)
-            messages ++= FastMessaging.message(idnuse, s"expected an assignable identifier `${idnuse.name}` as lhs")
-          else
-            messages ++= FastMessaging.message(idnuse, s"ambiguous identifier `${idnuse.name}`, expected single parameter or local variable")
-        } else
-          messages ++= FastMessaging.message(idnuse, s"undeclared identifier `${idnuse.name}`, expected parameter or local variable")
-      case fa@PFieldAccess(_, _, field) =>
-        field.assignUse = true
-        if (field.decl.isDefined)
-          check(fa, field.decl.get.typ)
-        else if (field.decls.length > 1)
-          messages ++= FastMessaging.message(field, s"ambiguous field `${field.name}`")
-        else
-          messages ++= FastMessaging.message(field, s"undeclared field `${field.name}`")
-      case call: PCall => sys.error(s"Unexpected node $call found")
+    stmt.targets.toSeq foreach { target =>
+      target match {
+        case _: PIdnUseExp | _: PFieldAccess | _: PLookup | _: PUpdate =>
+          checkAssignTarget(target)
+        case call: PCall => sys.error(s"Unexpected node $call found")
+      }
     }
     // Check rhs
     stmt match {
@@ -456,6 +468,8 @@ case class TypeChecker(names: NameAnalyser) {
       case PFunctionType(argTypes, resultType) =>
         argTypes map check
         check(resultType)
+      case PArrayType(_, elementType) =>
+        check(elementType.inner)
       case t: PExtender =>
         t.typecheck(this, names).getOrElse(Nil) foreach (message =>
           messages ++= FastMessaging.message(t, message))

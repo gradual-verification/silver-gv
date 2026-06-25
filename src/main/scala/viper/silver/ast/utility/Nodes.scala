@@ -137,7 +137,7 @@ object Nodes {
           case MapCardinality(base) => Seq(base)
           case MapDomain(base) => Seq(base)
           case MapRange(base) => Seq(base)
-
+          case ArrayInstance(typ, sz) => Seq(typ, sz)
           case e: ExtensionExp => e.extensionSubnodes
         }
       case _: Type => Nil

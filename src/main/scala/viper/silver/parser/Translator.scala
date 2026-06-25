@@ -590,6 +590,7 @@ case class Translator(program: PProgram) {
 
       case PLookup(base, _, index, _) => base.typ match {
         case _: PSeqType => SeqIndex(exp(base), exp(index))(pos, info)
+        case _: PArrayType => SeqIndex(exp(base), exp(index))(pos, info)
         case _: PMapType => MapLookup(exp(base), exp(index))(pos, info)
         case t => sys.error(s"unexpected type $t")
       }
@@ -601,6 +602,7 @@ case class Translator(program: PProgram) {
 
       case PUpdate(base, _, key, _, value, _) => base.typ match {
         case _: PSeqType => SeqUpdate(exp(base), exp(key), exp(value))(pos, info)
+        case _: PArrayType => SeqUpdate(exp(base), exp(key), exp(value))(pos, info)
         case _: PMapType => MapUpdate(exp(base), exp(key), exp(value))(pos, info)
         case t => sys.error(s"unexpected type $t")
       }
@@ -633,7 +635,8 @@ case class Translator(program: PProgram) {
         MapDomain(exp(base.inner))(pos, info)
       case PMapRange(_, base) =>
         MapRange(exp(base.inner))(pos, info)
-
+      case PArray(_, elementType, sz) =>
+        ArrayInstance(ttyp(elementType.inner), exp(sz.inner.toSeq.head))(pos, info)
       case t: PExtender => t.translateExp(this)
     }
   }
@@ -675,6 +678,8 @@ case class Translator(program: PProgram) {
       SetType(ttyp(elemType.inner))
     case PMultisetType(_, elemType) =>
       MultisetType(ttyp(elemType.inner))
+    case PArrayType(_, elementType)=>
+      ArrayType(ttyp(elementType.inner))
     case typ: PMapType =>
       MapType(ttyp(typ.keyType), ttyp(typ.valueType))
     case typ@PDomainType(name, _) =>
