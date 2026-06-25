@@ -850,6 +850,8 @@ object FastPrettyPrinter extends FastPrettyPrinterBase with BracketPrettyPrinter
         bracket(seq, si, LeftAssociative) <> brackets(show(idx))
       case SeqIndex(seq, idx) =>
         show(seq) <> brackets(show(idx))
+      case ArrayIndex(seq, idx) =>
+        show(seq) <> brackets(show(idx))
       case st@SeqTake(seq: PrettyOperatorExpression, n) =>
         bracket(seq, st, LeftAssociative) <> brackets(text("..") <> show(n))
       case SeqTake(seq, n) =>
@@ -862,7 +864,11 @@ object FastPrettyPrinter extends FastPrettyPrinterBase with BracketPrettyPrinter
         show(seq) <> brackets(show(n) <> "..")
       case SeqUpdate(seq, idx, elem) =>
         show(seq) <> group(brackets(show(idx) <+> ":=" <@> show(elem)))
+      case ArrayUpdate(seq, idx, elem) =>
+        show(seq) <> group(brackets(show(idx) <+> ":=" <@> show(elem)))
       case SeqLength(seq) =>
+        surround(show(seq),char ('|'))
+      case ArrayLength(seq) =>
         surround(show(seq),char ('|'))
       case SeqContains(elem, seq) =>
         group(parens(show(elem) <+> "in" <@> show(seq)))

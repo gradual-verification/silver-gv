@@ -812,13 +812,21 @@ case class SeqIndex(s: Exp, idx: Exp)(val pos: Position = NoPosition, val info: 
   override lazy val check : Seq[ConsistencyError] =
     (if(!s.typ.isInstanceOf[SeqType]) Seq(ConsistencyError(s"Expected sequence type but found ${s.typ}", s.pos)) else Seq()) ++
     (if(!(idx isSubtype Int)) Seq(ConsistencyError(s"Second parameter of sequence-access expression must be Int, but found ${idx.typ}", idx.pos)) else Seq())
-  lazy val typ = s.typ match {
-    case st: SeqType => st.elementType
-    case at: ArrayType => at.elementType
-    case _ => sys.error(s"Unexpected type ${s.typ} for SeqIndex")
-  }
+  lazy val typ = s.typ.asInstanceOf[SeqType].elementType
   def getArgs = Seq(s,idx)
   def withArgs(newArgs: Seq[Exp]) = SeqIndex(newArgs.head,newArgs(1))(pos, info, errT)
+  override def priority: Int = 10
+  override def fixity: Fixity = Infix(LeftAssociative)
+}
+
+/** Access an element of an array by index. */
+case class ArrayIndex(s: Exp, idx: Exp)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends Exp with PrettyOperatorExpression with Lhs {
+  override lazy val check : Seq[ConsistencyError] =
+    (if(!s.typ.isInstanceOf[ArrayType]) Seq(ConsistencyError(s"Expected array type but found ${s.typ}", s.pos)) else Seq()) ++
+    (if(!(idx isSubtype Int)) Seq(ConsistencyError(s"Second parameter of array-access expression must be Int, but found ${idx.typ}", idx.pos)) else Seq())
+  lazy val typ = s.typ.asInstanceOf[ArrayType].elementType
+  def getArgs = Seq(s,idx)
+  def withArgs(newArgs: Seq[Exp]) = ArrayIndex(newArgs.head,newArgs(1))(pos, info, errT)
   override def priority: Int = 10
   override def fixity: Fixity = Infix(LeftAssociative)
 }
@@ -863,11 +871,11 @@ case class SeqContains(elem: Exp, s: Exp)(val pos: Position = NoPosition, val in
 }
 
 /** The same sequence as 'seq', but with the element at index 'idx' replaced with 'elem'. */
-case class SeqUpdate(s: Exp, idx: Exp, elem: Exp)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends SeqExp {
+case class SeqUpdate(s: Exp, idx: Exp, elem: Exp)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends SeqExp with Lhs {
   override lazy val check : Seq[ConsistencyError] =
-    (if(!s.typ.isInstanceOf[SeqType] && !s.typ.isInstanceOf[ArrayType]) Seq(ConsistencyError(s"Expected sequence or array type but found ${s.typ}", s.pos)) else Seq()) ++
+    (if(!s.typ.isInstanceOf[SeqType]) Seq(ConsistencyError(s"Expected sequence type but found ${s.typ}", s.pos)) else Seq()) ++
     (if(!(idx isSubtype Int)) Seq(ConsistencyError(s"Second parameter of sequence-update expression must be of Int type, but found ${idx.typ}", idx.pos)) else Seq()) ++
-    (if(!(elem isSubtype ExpressionUtils.elementTypeOf(s.typ))) Seq(ConsistencyError(s"Expected type ${ExpressionUtils.elementTypeOf(s.typ)} but found ${elem.typ}", elem.pos)) else Seq()) ++
+    (if(!(elem isSubtype s.typ.asInstanceOf[SeqType].elementType)) Seq(ConsistencyError(s"Expected type ${s.typ.asInstanceOf[SeqType].elementType} but found ${elem.typ}", elem.pos)) else Seq()) ++
     Consistency.checkPure(elem)
 
   lazy val desugaredAssumingIndexInRange : SeqExp = {
@@ -876,7 +884,18 @@ case class SeqUpdate(s: Exp, idx: Exp, elem: Exp)(val pos: Position = NoPosition
   lazy val typ = s.typ
   def getArgs = Seq(s,idx,elem)
   def withArgs(newArgs: Seq[Exp]) = SeqUpdate(newArgs.head,newArgs(1),newArgs(2))(pos, info, errT)
+}
 
+/** Update an element of an array by index, returning the new array. */
+case class ArrayUpdate(s: Exp, idx: Exp, elem: Exp)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends Exp with Lhs {
+  override lazy val check : Seq[ConsistencyError] =
+    (if(!s.typ.isInstanceOf[ArrayType]) Seq(ConsistencyError(s"Expected array type but found ${s.typ}", s.pos)) else Seq()) ++
+    (if(!(idx isSubtype Int)) Seq(ConsistencyError(s"Second parameter of array-update expression must be of Int type, but found ${idx.typ}", idx.pos)) else Seq()) ++
+    (if(!(elem isSubtype s.typ.asInstanceOf[ArrayType].elementType)) Seq(ConsistencyError(s"Expected type ${s.typ.asInstanceOf[ArrayType].elementType} but found ${elem.typ}", elem.pos)) else Seq()) ++
+    Consistency.checkPure(elem)
+  lazy val typ = s.typ
+  def getArgs = Seq(s,idx,elem)
+  def withArgs(newArgs: Seq[Exp]) = ArrayUpdate(newArgs.head,newArgs(1),newArgs(2))(pos, info, errT)
 }
 
 /** The length of a sequence. */
@@ -886,7 +905,15 @@ case class SeqLength(s: Exp)(val pos: Position = NoPosition, val info: Info = No
   lazy val typ = Int
   def getArgs = Seq(s)
   def withArgs(newArgs: Seq[Exp]) = SeqLength(newArgs.head)(pos, info, errT)
+}
 
+/** The length of an array. */
+case class ArrayLength(s: Exp)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends Exp {
+  override lazy val check : Seq[ConsistencyError] =
+    if(!s.typ.isInstanceOf[ArrayType]) Seq(ConsistencyError(s"Expected array type but found ${s.typ}", s.pos)) else Seq()
+  lazy val typ = Int
+  def getArgs = Seq(s)
+  def withArgs(newArgs: Seq[Exp]) = ArrayLength(newArgs.head)(pos, info, errT)
 }
 
 // --- Mathematical sets and multisets

@@ -200,6 +200,7 @@ object Expressions {
           case Div(_, q) => List(NeCmp(q, IntLit(0)(p))(p))
           case Mod(_, q) => List(NeCmp(q, IntLit(0)(p))(p))
           case SeqIndex(s, idx) => List(GeCmp(idx, IntLit(0)(p))(p), LtCmp(idx, SeqLength(s)(p))(p))
+          case ArrayIndex(s, idx) => List(GeCmp(idx, IntLit(0)(p))(p), LtCmp(idx, ArrayLength(s)(p))(p))
           case MapLookup(m, k) => List(MapContains(k, m)(p))
           case Unfolding(pred, _) => List(pred)
           case Applying(wand, _) => List(wand)

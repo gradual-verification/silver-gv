@@ -52,6 +52,7 @@ object Nodes {
           case LocalVarAssign(lhs, rhs) => Seq(lhs, rhs)
           case FieldAssign(lhs, rhs) => Seq(lhs, rhs)
           case SeqIndexAssign(lhs, rhs) => Seq(lhs, rhs)
+          case ArrayIndexAssign(lhs, rhs) => Seq(lhs, rhs)
           case MapLookupAssign(lhs, rhs) => Seq(lhs, rhs)
           case Fold(e) => Seq(e)
           case Unfold(e) => Seq(e)
@@ -119,11 +120,14 @@ object Nodes {
           case RangeSeq(low, high) => Seq(low, high)
           case SeqAppend(left, right) => Seq(left, right)
           case SeqIndex(seq, idx) => Seq(seq, idx)
+          case ArrayIndex(seq, idx) => Seq(seq, idx)
           case SeqTake(seq, nn) => Seq(seq, nn)
           case SeqDrop(seq, nn) => Seq(seq, nn)
           case SeqContains(elem, seq) => Seq(elem, seq)
           case SeqUpdate(seq, idx, elem) => Seq(seq, idx, elem)
+          case ArrayUpdate(seq, idx, elem) => Seq(seq, idx, elem)
           case SeqLength(seq) => Seq(seq)
+          case ArrayLength(seq) => Seq(seq)
 
           case EmptySet(elemTyp) => Seq(elemTyp)
           case ExplicitSet(elems) => elems
