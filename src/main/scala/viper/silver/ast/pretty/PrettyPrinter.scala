@@ -633,6 +633,7 @@ object FastPrettyPrinter extends FastPrettyPrinterBase with BracketPrettyPrinter
       case Wand => "$WandType"
       case SeqType(elemType) => text("Seq") <> brackets(show(elemType))
       case SetType(elemType) => text("Set") <> brackets(show(elemType))
+      case ArrayType(elemType) => text("Array") <> brackets(show(elemType))
       case MultisetType(elemType) => text("Multiset") <> brackets(show(elemType))
       case MapType(keyType, valueType) => text("Map") <> brackets(show(keyType) <> "," <> show(valueType))
       case TypeVar(v) => v
@@ -668,6 +669,7 @@ object FastPrettyPrinter extends FastPrettyPrinterBase with BracketPrettyPrinter
         show(target) <+> ":=" <+> "new(" <> ssep(fields map (f => value(f.name)), char(',') <> space) <> ")"
       case LocalVarAssign(lhs, rhs) => show(lhs) <+> ":=" <+> nest(defaultIndent, show(rhs))
       case FieldAssign(lhs, rhs) => show(lhs) <+> ":=" <+> nest(defaultIndent, show(rhs))
+      case ArrayIndexAssign(lhs, rhs) => show(lhs) <+> ":=" <+> nest(defaultIndent, show(rhs))
       case Fold(e) => text("fold") <+> nest(defaultIndent, show(e))
       case Unfold(e) => text("unfold") <+> nest(defaultIndent, show(e))
       case Package(e, proofScript) => text("package") <+> show(e) <+> showBlock(proofScript)
@@ -842,6 +844,8 @@ object FastPrettyPrinter extends FastPrettyPrinterBase with BracketPrettyPrinter
         text(funcName) <> parens(ssep(args map show, group(char(',') <> line)))
       case EmptySeq(elemTyp) =>
         text("Seq[") <> showType(elemTyp) <> "]()"
+      case ArrayInstance(elemTyp, sz) =>
+        text("Array[") <> showType(elemTyp) <> "]" <> parens(show(sz))
       case ExplicitSeq(elems) =>
         text("Seq") <> parens(ssep(elems map show, group(char (',') <> line)))
       case RangeSeq(low, high) =>
