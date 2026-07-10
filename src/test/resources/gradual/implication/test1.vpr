@@ -1,0 +1,5 @@
+method binary_search(x: Int, y: Int) returns (index: Int)
+requires x > 0 ==> y > 0
+{
+    //please work?
+}

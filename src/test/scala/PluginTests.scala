@@ -138,7 +138,7 @@ class TestPluginAddPredicate extends SilverPlugin {
 // ATG: After introducing `PluginAwareReporter` this test became rather trivial.
 class TestPluginMapErrors extends SilverPlugin with TestPlugin with FakeResult {
 
-  var error1: Internal = Internal(FeatureUnsupported(LocalVar("test1", Perm)(), "Test1"))
+  var error1: Internal = Internal(FeatureUnsupported(LocalVar("test1.vpr", Perm)(), "Test1"))
   var error2: Internal = Internal(FeatureUnsupported(LocalVar("test2", Perm)(), "Test2"))
   var finish = false
 

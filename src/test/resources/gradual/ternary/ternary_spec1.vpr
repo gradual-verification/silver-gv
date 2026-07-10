@@ -1,0 +1,12 @@
+method test(x: Int) returns ($result: Int)
+  requires true
+  ensures (x > 0 ? $result > 0 : $result == 0)
+{
+  var _result$: Int
+  if (x > 0) {
+    _result$ := 1
+  } else {
+    _result$ := 0
+  }
+  $result := _result$
+}

@@ -14,7 +14,7 @@ import viper.silver.cfg.ConditionalEdge
 class CfgTests extends AnyFunSuite {
   val count = 100
   val prefix = "cfgtests/determinism/"
-  val files = Seq("if", "while")
+  val files = Seq("if", "while", "ternary", "array")
 
   files foreach { filename =>
     test(s"Determinism Test $prefix$filename") {
