@@ -12,7 +12,7 @@ method test00(x: Ref) returns (b: Bool)
   while (b)
     // ? should be nothing
     invariant ? && true
-    invariant (b ? acc(x.f, 1) : true)
+    invariant (b ? acc(x.f, 1/1) : true)
   {
     b := !b
   }
