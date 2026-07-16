@@ -1,9 +1,8 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
 domain TrClo {
-    function exists_path(EG:Set[Int], start:Ref, end:Ref): Bool
+    function exists_path(EG:Set[Int], start:Ref, end:Ref): Bool 
 }
 
 field next:Ref
@@ -11,10 +10,10 @@ field next:Ref
 function $$(refs:Set[Ref]): Set[Int]
     requires forall n:Ref :: n in refs ==> acc(n.next)
 
-method append(g:Set[Ref], x:Ref)
+method append(g:Set[Ref], x:Ref) 
     requires forall n:Ref :: n in g ==> acc(n.next)
-    requires x in g
-    requires forall n:Ref :: n in g ==> exists_path($$(g),x,n)
+    requires x in g 
+    requires forall n:Ref :: n in g ==> exists_path($$(g),x,n) 
 {
     label l0
 

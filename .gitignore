@@ -1,7 +1,5 @@
 .cache
 project/project/**
-project/target/**
-target/**
 bin/**
 .idea/
 .idea_modules/
@@ -12,7 +10,13 @@ documentation/syntax/sil-syntax.log
 documentation/syntax/sil-syntax.aux
 *.iml
 .DS_Store
-.bloop
-project/metals.sbt
+.bsp/
+
+# sbt's target directories
+/target/
+/project/**/target/
+
+# metals
 .metals
-.bsp
+.bloop
+project/**/metals.sbt

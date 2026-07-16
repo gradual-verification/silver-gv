@@ -2,7 +2,6 @@
 // http://creativecommons.org/publicdomain/zero/1.0/
 
 //:: IgnoreFile(/carbon/issue/216/)
-//:: IgnoreFile(/silicon/issue/208/)
 
 field next : Ref;
 

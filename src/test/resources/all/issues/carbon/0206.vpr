@@ -1,9 +1,7 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
-field val: Int
+field val: Int 
 
 domain Array {
     function loc(a: Array, i: Int): Ref
@@ -22,7 +20,7 @@ domain Array {
 }
 
 function elements(this: Array): Set[Int]
-    requires forall i: Int :: { loc(this, i).val } i in [0..length(this)) ==> acc(loc(this, i).val)
+    requires forall i: Int :: { loc(this, i).val } i in [0..length(this)) ==> acc(loc(this, i).val) 
     ensures forall i: Int :: { loc(this,i).val }{ i in [0..length(this)) } i in [0..length(this)) ==> loc(this,i).val in result
 
 domain Foobar {
@@ -30,14 +28,14 @@ domain Foobar {
 }
 
 method swap(a: Array, x: Int, y: Int)
-    requires forall i: Int :: { loc(a, i).val } i in [0..length(a)) ==> acc(loc(a, i).val)
+    requires forall i: Int :: { loc(a, i).val } i in [0..length(a)) ==> acc(loc(a, i).val) 
     requires 0 <= x && x < length(a)
     requires 0 <= y && y < length(a)
-    ensures forall i: Int :: { loc(a, i).val } i in [0..length(a)) ==> acc(loc(a, i).val)
+    ensures forall i: Int :: { loc(a, i).val } i in [0..length(a)) ==> acc(loc(a, i).val) 
     //:: ExpectedOutput(postcondition.violated:assertion.false)
     ensures elements(a) == old(elements(a))
 {
     assume forall j:Int :: { j in elements(a) } 0 <= j && j < length(a) ==> dummy( j in elements(a) )
     //assert false
-    loc(a,x).val := -77
+    loc(a,x).val := -77   
 }

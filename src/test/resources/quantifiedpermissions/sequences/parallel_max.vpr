@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 // class Cell
 field value:Int
 
@@ -13,11 +11,14 @@ method parallel_max(a:Ref, start:Int, end:Int, kperm: Perm) returns (mx: Int, po
   requires a != null
   requires acc(a.array, wildcard)
   requires 0 <= start && start < end && end < |a.array|
+  requires kperm >= none
+  requires forall i:Int, j:Int :: i in [start..end) && j in [start..end) && i != j ==> a.array[i] != a.array[j]
   requires forall i:Int :: i in [start..end) ==> acc(a.array[i].value, kperm)
   requires |a.array| >= 1
   requires none < kperm && kperm < write
   ensures acc(a.array, wildcard)
   ensures end < |a.array|
+  ensures forall i:Int, j:Int :: i in [start..end) && j in [start..end) && i != j ==> a.array[i] != a.array[j]
   ensures forall i:Int :: i in [start..end) ==> acc(a.array[i].value, kperm)
   ensures start<=pos && pos<end
   ensures a.array[pos].value == mx
@@ -76,3 +77,8 @@ method parallel_max(a:Ref, start:Int, end:Int, kperm: Perm) returns (mx: Int, po
     // ensure proper framing
     assert forall i6:Int :: i6 in [start..end) ==> a.array[i6].value == old(a.array[i6].value)
 }
+
+
+
+
+

@@ -1,9 +1,8 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: ExpectedOutput(parser.error)
 domain List1[T] {
-  // ExpectedOutput(typechecker.error) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(typechecker.error)
   function nil1(): List[X] /* X has not been declared! */
 
   function cons1(x: T, xs: List1[T]): List1[T]
@@ -40,7 +39,7 @@ domain List[A] {
   axiom takeSuccessorCons {
     /* y should have same type A as elements of ys - hence this is not valid for all instances of List and hence rejected. */
     forall x: Natural, y: Natural, ys: List[A] ::
-  // ExpectedOutput(typechecker.error) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(typechecker.error)
       take(successor(x), cons(y, ys)) == cons(y, take(x, ys))
   }
 }

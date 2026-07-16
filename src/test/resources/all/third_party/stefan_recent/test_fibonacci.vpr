@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field Fib__input: Int
 
 field Fib__output: Int
@@ -12,7 +10,7 @@ function Fib__fib(n: Int): Int
   (n < 2 ? 1 : Fib__fib(n - 1) + Fib__fib(n - 2))
 }
 
-predicate Fib__joinToken(diz: Ref)
+predicate Fib__joinToken(diz: Ref) 
 
 method Fib__forkOperator(diz: Ref, current_thread_id: Int)
   requires diz != null

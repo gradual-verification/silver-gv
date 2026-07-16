@@ -4,17 +4,14 @@
 //
 // Copyright (c) 2011-2019 ETH Zurich.
 
-// tests are about domains
-
-/*
-
-
 import java.nio.file.Paths
+
 import TestHelpers.MockSilFrontend
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 import viper.silver.ast._
 
-class DomainInstanceTest extends FunSuite with Matchers {
+class DomainInstanceTest extends AnyFunSuite with Matchers {
   test("Basic domain instances") {
     val t = TypeVar("T")
     val d = Domain("D", Seq(), Seq(), Seq(t))(NoPosition, NoInfo)
@@ -61,7 +58,7 @@ class DomainInstanceTest extends FunSuite with Matchers {
     }
   }
 
-  test("Domain instances recursion threshold") {
+  /*test("Domain instances recursion threshold") {
     val frontend = new MockSilFrontend
     val fileN = "all/domains/domains_threshold.vpr"
     val fileR = getClass.getResource(fileN)
@@ -72,7 +69,7 @@ class DomainInstanceTest extends FunSuite with Matchers {
     frontend.translate(file) match {
       case (Some(p), _) =>
 //        viper.silver.ast.utility.DomainInstances.showInstanceMembers(p)
-        p.groundTypeInstances.size should be(8)
+        p.groundTypeInstances.size should be(8)*/
 
         /* 2017-04-28 Malte:
          *   Deactivated all remaining assertions since they don't make any sense to me
@@ -96,9 +93,8 @@ class DomainInstanceTest extends FunSuite with Matchers {
 //          case _ => false
 //        } should be(256)
 
-      case (None, errors) =>
+      /*case (None, errors) =>
         fail(s"Expected a parsed program, but got: $errors")
     }
-  }
+  }*/
 }
-*/

@@ -1,9 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/carbon/issue/280/)
-
-//:: IgnoreFile(/silicon/issue/208/)
 
 domain Pair[T1,T2] {
   function first(p : Pair[T1,T2]): T1
@@ -111,7 +108,7 @@ method insert(this: Ref, elem: Int) returns (j: Int)
     invariant 0 <= j && j <= length(this)
     invariant j > 0 ==> itemAt(this,j-1) <= elem
     invariant length(this) == old(length(this))
-    invariant forall k: Int :: {itemAt(this,k)} 0 <= k && k < length(this) ==> itemAt(this,k) == old(itemAt(this,k))
+    invariant forall k: Int :: {old(itemAt(this,k))} 0 <= k && k < length(this) ==> itemAt(this,k) == old(itemAt(this,k))
   {
     unfold acc(AList(this))
     j := j + 1
@@ -132,9 +129,10 @@ method insert(this: Ref, elem: Int) returns (j: Int)
   // shuffle the later elements forward
   while (t > j)
     invariant acc(this.elems,1/2) && acc(this.size,1/2) && acc(loc(this.elems,j).val, 1/2)
-    invariant (forall i:Int :: j < i && i <= this.size ==> acc(loc(this.elems,i).val))
     invariant j <= t && t <= this.size
     invariant this.size == old(length(this))
+    invariant -1 <= j && this.size < len(this.elems)
+    invariant (forall i:Int :: j < i && i <= this.size ==> acc(loc(this.elems,i).val))
     invariant forall i: Int :: {loc(this.elems,i)} j <= i && i <= this.size ==> (i < t ==> loc(this.elems,i).val == old(itemAt(this,i)))
     invariant forall i: Int :: {loc(this.elems,i)} j < i && i <= this.size ==> (i > t ==> loc(this.elems,i).val == old(itemAt(this,i-1)))
   {

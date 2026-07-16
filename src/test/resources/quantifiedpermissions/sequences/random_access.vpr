@@ -2,7 +2,7 @@
 // http://creativecommons.org/publicdomain/zero/1.0/
 
 field f: Int
-/*
+
 method test01(s: Seq[Ref], a: Int, b: Int, n: Int)
   requires 0 <= a && 0 < b && 0 < n
   requires a + n * b < |s|
@@ -10,8 +10,9 @@ method test01(s: Seq[Ref], a: Int, b: Int, n: Int)
   var j: Int
 
   inhale 0 <= j && j < n
+  inhale forall i1: Int, i2: Int :: {i1 in [0..n), i2 in [0..n)} i1 in [0..n) && i2 in [0..n) && i1 != i2 ==> s[a + i1*b] != s[a + i2*b]
   inhale forall i: Int :: {i in [0..n)} i in [0..n) ==> acc(s[a + i*b].f)
-     Yields the non-null axiom
+    /* Yields the non-null axiom
 
          forall i: Int
              {i in [0..n)}
@@ -24,19 +25,17 @@ method test01(s: Seq[Ref], a: Int, b: Int, n: Int)
        straight-forward because one needs to preserve the relatonship between
        i and j. Moreover, s[j] on its own wouldn't be a valid trigger because
        it wouldn't cover all quantified variables.
+     */
 
-
-   TODO: Fails because ($Seq.at s (+ a (* i b))) doesn't trigger above axiom
-  /:: UnexpectedOutput(assert.failed:assertion.false, /silver/issue/67/)
+  /* TODO: Fails because ($Seq.at s (+ a (* i b))) doesn't trigger above axiom */
+  //:: UnexpectedOutput(assert.failed:assertion.false, /silver/issue/67/)
   assert s[a + j*b] != null
 }
-*/
-/*
+
 function exp(a: Int, i: Int, b: Int): Int {
   a + i*b
 }
-*/
-/*
+
 method test04(s: Seq[Ref], a: Int, b: Int, n: Int)
   requires 0 <= a && 0 < b && 0 < n
   requires a + n * b < |s|
@@ -44,21 +43,24 @@ method test04(s: Seq[Ref], a: Int, b: Int, n: Int)
   var j: Int
 
   inhale 0 <= j && j < n
+  assert forall i: Int :: {i in [0..n)} i in [0..n) ==> exp(a, i, b) < |s|
+  inhale forall i1: Int, i2: Int :: {i1 in [0..n), i2 in [0..n)} i1 in [0..n) && i2 in [0..n) && i1 != i2 ==> s[exp(a, i1, b)] != s[exp(a, i2, b)]
   inhale forall i: Int :: i in [0..n) ==> acc(s[exp(a, i, b)].f)
-     Yields the non-null axiom
+    /* Yields the non-null axiom
 
          forall i: Int
              {i in [0..n)}
              {s[exp(a, i, b)]}
            i in [0..n) ==> s[exp(a, i, b)] != null
+     */
 
-
-  Using exp(a, j, b) will trigger above axiom 
+  /* Using exp(a, j, b) will trigger above axiom */
   assert s[exp(a, j, b)] != null
 }
-*/
+
 method test02(s: Seq[Ref], a: Int, b: Int)
   requires 0 <= a && 0 < b
+  requires forall i: Int, j: Int :: i in [a..|s|) && (i - a) % b == 0 && j in [a..|s|) && (j - a) % b == 0 && i != j ==> s[i] != s[j]
   requires forall i: Int :: i in [a..|s|) && (i - a) % b == 0 ==> acc(s[i].f)
 {
   var j: Int := a
@@ -80,6 +82,7 @@ method test02(s: Seq[Ref], a: Int, b: Int)
 
 method test03(s: Seq[Ref], a: Int, b: Int)
   requires 0 <= a && 0 < b
+  requires forall i: Int, j: Int :: i in [a..|s|) && (i - a) % b == 0 && j in [a..|s|) && (j - a) % b == 0 && i != j ==> s[i] != s[j]
   requires forall i: Int :: i in [a..|s|) && (i - a) % b == 0 ==> acc(s[i].f)
 {
   var j: Int := 0

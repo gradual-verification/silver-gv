@@ -5,7 +5,6 @@ field Cellx: Int
 
 method Cellvoid(this: Ref, k: Perm)
   requires this != null
-  //:: ExpectedOutput(parser.error)
   requires k > none
   requires write > k
   requires acc(this.Cellx, k)

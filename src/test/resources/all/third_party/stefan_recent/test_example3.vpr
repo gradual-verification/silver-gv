@@ -1,16 +1,16 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field Counter__x: Int
 
 method parameters__drop(diz: Ref, current_thread_id: Int, c: Ref, p: Perm) returns (q: Perm)
   requires diz != null
   requires current_thread_id >= 0
   requires c != null
+  requires p >= none
   requires acc(c.Counter__x, p)
   ensures c != null
+  ensures q >= none
   ensures acc(c.Counter__x, q)
   ensures q <= p
 {
@@ -40,7 +40,7 @@ method parameters__main(diz: Ref, current_thread_id: Int)
     // confirmed by Stefan Blom
   c.Counter__x := __flatten_10
 }
-/*
+
 method parameters__parameters(current_thread_id: Int) returns (sys__result: Ref)
   requires current_thread_id >= 0
   ensures sys__result != null
@@ -51,7 +51,7 @@ method parameters__parameters(current_thread_id: Int) returns (sys__result: Ref)
   assert sys__result != null
   inhale false
 }
-*/
+
 method Counter__incr(diz: Ref, current_thread_id: Int)
   requires diz != null
   requires current_thread_id >= 0
@@ -65,7 +65,7 @@ method Counter__incr(diz: Ref, current_thread_id: Int)
   __flatten_11 := __flatten_5
   diz.Counter__x := __flatten_11
 }
-/*
+
 method Counter__Counter(current_thread_id: Int) returns (sys__result: Ref)
   requires current_thread_id >= 0
   ensures sys__result != null
@@ -81,4 +81,4 @@ method Counter__Counter(current_thread_id: Int) returns (sys__result: Ref)
   sys__result := diz
   assert (sys__result != null) && (acc(sys__result.Counter__x, write) && (sys__result.Counter__x == 0))
   inhale false
-}*/
+}

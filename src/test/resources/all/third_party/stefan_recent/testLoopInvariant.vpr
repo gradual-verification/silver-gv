@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field Ref__res: Int
 
 field Ref__dummy: Int
@@ -30,7 +28,7 @@ method Ref__Mul(diz: Ref, current_thread_id: Int, n: Int) returns (sys__result: 
   while (i < n)
     invariant acc(diz.Ref__res, write)
     invariant i <= n
-    invariant diz.Ref__res == i * n
+    invariant diz.Ref__res == i * n 
   {
     __flatten_2 := diz.Ref__res + n
     __flatten_5 := __flatten_2

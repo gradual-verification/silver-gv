@@ -1,10 +1,8 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 //:: IgnoreFile(/carbon/issue/223/)
-field val : Int
+field val : Int 
 
 predicate bar(x:Ref) {
   acc(x.val)
@@ -13,10 +11,10 @@ predicate bar(x:Ref) {
 function get(x: Ref) : Int
   requires forall w:Ref :: {w in Set(x)} w in Set(x) ==> acc(bar(w))
   {
-    unfolding bar(x) in x.val
+    asserting (x in Set(x)) in unfolding bar(x) in x.val
   }
 
-method set(x:Ref, i:Int)
+method set(x:Ref, i:Int) 
   requires bar(x)
   ensures bar(x) && get(x) == i
 

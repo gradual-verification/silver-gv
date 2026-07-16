@@ -1,14 +1,12 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field History__x: Int
 
 field History__x_old: Int
 
 field History__Integer_value: Int
-/*
+
 method History__empty(diz: Ref)
   requires diz != null
   requires acc(diz.History__x, write)
@@ -26,7 +24,7 @@ method History__incr(diz: Ref)
 {
   inhale false
 }
-*/
+
 method History__single(diz: Ref, n: Int)
   requires diz != null
   requires acc(diz.History__x, write)
@@ -175,7 +173,7 @@ method History__destroy_check(diz: Ref)
     History__empty(diz)
   }
 }
-/*
+
 method History__History() returns (sys__result: Ref)
   ensures sys__result != null
   ensures acc(sys__result.History__x, write) && (sys__result.History__x == 0)
@@ -218,4 +216,4 @@ method History__if_any_random(diz: Ref) returns (sys__result: Bool)
   requires diz != null
 {
   inhale false
-}*/
+}

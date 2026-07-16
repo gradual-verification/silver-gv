@@ -3,12 +3,10 @@
 
 field val : Int
 
-method test(x: Ref, y: Ref)
-  //:: ExpectedOutput(parser.error)
-  requires acc(x.val) && (x != y ==> acc(y.val))
-{
+method test(x: Ref, y: Ref) {
+    inhale acc(x.val) && (x != y ==> acc(y.val))
     x.val := 4
     y.val := 3
-    // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
-    assert x.val == 4
+    //:: ExpectedOutput(assert.failed:assertion.false)
+    assert x.val == 4 
 }

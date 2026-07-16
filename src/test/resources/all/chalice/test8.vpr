@@ -1,13 +1,17 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
+
+//:: IgnoreFile(/silicon/issue/233/)
+// Issue: function, unfolding keyword
+
   field value: Int
   field next: Ref
   predicate inv(this: Ref) { acc(this.value, write) }
-  predicate tinv(this: Ref) { acc(this.value, write) && acc(this.next, write) && (((this.next) != (null)) ? acc(tinv(this.next), write) : true) }
-  /* function get(this: Ref): Int
+  predicate tinv(this: Ref) { acc(this.value, write) && acc(this.next, write) && (((this.next) != (null)) ==> acc(tinv(this.next), write)) }
+  function get(this: Ref): Int
     requires acc(tinv(this), write)
-  { (unfolding acc(tinv(this), write) in this.value) } */
+  { (unfolding acc(tinv(this), write) in this.value) }
   method fufu(this: Ref)
     requires acc(this.value, write)
   {
@@ -36,7 +40,6 @@
     unfold acc(inv(this), write)
   }
   method t(this: Ref)
-    //:: ExpectedOutput(parser.error)
     requires acc(tinv(this), write) && (unfolding acc(tinv(this), write) in ((this.next) != (null)))
     ensures acc(tinv(this), write) && (unfolding acc(tinv(this), write) in ((this.next) != (null)))
   {

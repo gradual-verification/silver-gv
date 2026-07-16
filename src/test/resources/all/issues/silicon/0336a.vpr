@@ -4,7 +4,6 @@
 field parent : Ref
 field rank : Int
 
-//:: ExpectedOutput(parser.error)
 predicate uf_bank(b:Set[Ref])
 { (forall l:Ref :: {l in b} l in b ==>
     acc(l.parent) && acc(l.rank) && 0 <= l.rank)
@@ -14,7 +13,7 @@ predicate uf_bank(b:Set[Ref])
 method bad(b:Set[Ref],l:Ref)
   requires uf_bank(b)
   requires l in b
-  // ExpectedOutput(postcondition.violated:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(postcondition.violated:assertion.false)
   ensures false
 {
   unfold uf_bank(b);

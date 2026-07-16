@@ -4,11 +4,12 @@
 field f: Int
 
 method test(x: Ref, y: Ref)
-  requires acc(x.f)
 {
-  //:: ExpectedOutput(parser.error)
+  inhale acc(x.f)
   assume acc(y.f)
   assert x == y // would succeed, if supported
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert x != y // would fail, if supported
 }
+
+ 

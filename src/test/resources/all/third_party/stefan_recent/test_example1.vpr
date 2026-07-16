@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field Counter__x: Int
 
 method Main__main(diz: Ref, current_thread_id: Int)
@@ -25,7 +23,7 @@ method Main__main(diz: Ref, current_thread_id: Int)
   // confirmed by Stefan Blom
   assert c.Counter__x == 17
 }
-/*
+
 method Main__Main(current_thread_id: Int) returns (sys__result: Ref)
   requires current_thread_id >= 0
   ensures sys__result != null
@@ -36,7 +34,7 @@ method Main__Main(current_thread_id: Int) returns (sys__result: Ref)
   assert sys__result != null
   inhale false
 }
-*/
+
 method Counter__incr(diz: Ref, current_thread_id: Int)
   requires diz != null
   requires current_thread_id >= 0
@@ -50,7 +48,7 @@ method Counter__incr(diz: Ref, current_thread_id: Int)
   __flatten_11 := __flatten_5
   diz.Counter__x := __flatten_11
 }
-/*
+
 method Counter__Counter(current_thread_id: Int) returns (sys__result: Ref)
   requires current_thread_id >= 0
   ensures sys__result != null
@@ -67,4 +65,3 @@ method Counter__Counter(current_thread_id: Int) returns (sys__result: Ref)
   assert (sys__result != null) && (acc(sys__result.Counter__x, write) && (sys__result.Counter__x == 0))
   inhale false
 }
-*/

@@ -1,14 +1,12 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field Ref__x: Int
 
 field Ref__x_old: Int
 
 field Ref__Integer_value: Int
-/*
+
 method Ref__empty(diz: Ref)
   requires diz != null
   requires acc(diz.Ref__x, write)
@@ -26,7 +24,7 @@ method Ref__incr(diz: Ref)
 {
   inhale false
 }
-*/
+
 method Ref__single(diz: Ref, n: Int)
   requires diz != null
   requires acc(diz.Ref__x, write)
@@ -175,7 +173,7 @@ method Ref__destroy_check(diz: Ref)
     Ref__empty(diz)
   }
 }
-/*
+
 method Ref__Ref() returns (sys__result: Ref)
   ensures sys__result != null
   ensures acc(sys__result.Ref__x, write) && (sys__result.Ref__x == 0)
@@ -218,4 +216,4 @@ method Ref__if_any_random(diz: Ref) returns (sys__result: Bool)
   requires diz != null
 {
   inhale false
-}*/
+}

@@ -5,7 +5,6 @@
 field parent : Ref
 field rank : Int
 
-//:: ExpectedOutput(parser.error)
 predicate uf_bank(b:Set[Ref])
 { (forall l:Ref :: {l in b} l in b ==>
     acc(l.parent) && acc(l.rank) && 0 <= l.rank) &&
@@ -20,8 +19,8 @@ method bad(b:Set[Ref],l:Ref)
 {
   unfold uf_bank(b);
   fold uf_bank(b);
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
   assert
+  //:: ExpectedOutput(assert.failed:assertion.false)
     let n == (unfolding uf_bank(b) in l.rank) in
     n > n
 }

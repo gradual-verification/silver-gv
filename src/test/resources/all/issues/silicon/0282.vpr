@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 predicate pred(r: Ref)
 
 function fun(r: Ref, i: Int): Ref { r }
@@ -25,14 +23,15 @@ function at1(xs: Seq[Ref], i: Int): Ref
 function at2(i: Int, xs: Seq[Ref]): Ref
   requires 0 <= i && i < |xs|
 { xs[i] }
-/*
+
 method test02a(xs: Seq[Ref], k: Int) {
+  inhale forall i:Int, j:Int :: i >= 0 && i < |xs| && j >= 0 && j < |xs| && i != j ==> xs[i] != xs[j]
   inhale forall i: Int :: {at1(xs, i)} 0 <= i && i < |xs| ==> acc(at1(xs, i).f)
 
   /* Suppress "receiver at2(...) might not be invariant" error at the final assertion */
   inhale forall i: Int, j: Int :: 0 <= i && i < j && j < |xs| ==> xs[i] != xs[j]
 
-  /:: ExpectedOutput(assert.failed:insufficient.permission)
+  //:: ExpectedOutput(assert.failed:insufficient.permission)
   assert forall i: Int :: {at2(i, xs)} 0 <= i && i < |xs| ==> acc(at2(i, xs).f)
 }
 
@@ -42,6 +41,7 @@ domain Dummy {
 }
 
 method test02b(xs: Seq[Ref], k: Int) {
+  inhale forall i:Int, j:Int :: i >= 0 && i < |xs| && j >= 0 && j < |xs| && i != j ==> xs[i] != xs[j]
   inhale forall i: Int :: {at1(xs, i)} 0 <= i && i < |xs| ==> acc(at1(xs, i).f)
 
   /* Required for proving the final assertion */
@@ -52,15 +52,16 @@ method test02b(xs: Seq[Ref], k: Int) {
 
 method test03a(xs: Seq[Ref], k: Int) {
   inhale 0 <= k && k < |xs|
+  inhale forall i:Int, j:Int :: i >= 0 && i < |xs| && j >= 0 && j < |xs| && i != j ==> xs[i] != xs[j]
   inhale forall i: Int :: {at2(i, xs)} 0 <= i && i < |xs| ==> acc(at1(xs, i).f)
-  /:: ExpectedOutput(assert.failed:assertion.false)
-  /:: MissingOutput(assert.failed:assertion.false, /carbon/issue/242/)
+  //:: ExpectedOutput(assert.failed:assertion.false)
+  //:: MissingOutput(assert.failed:assertion.false, /carbon/issue/242/)
   assert at1(xs, k) != null
 }
 
 method test03b(xs: Seq[Ref], k: Int) {
   inhale 0 <= k && k < |xs|
+  inhale forall i:Int, j:Int :: i >= 0 && i < |xs| && j >= 0 && j < |xs| && i != j ==> xs[i] != xs[j]
   inhale forall i: Int :: {at2(i, xs)} 0 <= i && i < |xs| ==> acc(at1(xs, i).f)
   assert at2(k, xs) != null
 }
-*/

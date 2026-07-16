@@ -1,12 +1,11 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field f: Int
 
 method qsort(s: Seq[Ref], start: Int, end: Int)
   requires 0 <= start && start <= end && end <= |s|
+  requires forall i: Int, j: Int :: i in [start..end) && j in [start..end) && i != j ==> s[i] != s[j]
   requires forall i: Int :: i in [start..end) ==> acc(s[i].f, write)
   ensures forall i1: Int :: i1 in [start..end) ==> acc(s[i1].f, write)
     // sorting spec omitted
@@ -35,15 +34,15 @@ method qsort(s: Seq[Ref], start: Int, end: Int)
     aux := s[storeIndex].f
     s[storeIndex].f := s[end-1].f
     s[end-1].f := aux
-
+	
 	// fork qsort(s, start, storeIndex)
     exhale 0 <= start && start <= storeIndex && storeIndex <= |s|
     exhale forall i: Int :: i in [start..storeIndex) ==> acc(s[i].f, write)
-
+	
     // fork qsort(s, storeIndex+1, end)
     exhale 0 <= storeIndex+1 && storeIndex+1 <= end && end <= |s|
     exhale forall i: Int :: i in [storeIndex+1..end) ==> acc(s[i].f, write)
-
+	
 	// joins
 	inhale forall i1: Int :: i1 in [start..storeIndex) ==> acc(s[i1].f, write)
 	inhale forall i1: Int :: i1 in [storeIndex+1..end) ==> acc(s[i1].f, write)

@@ -3,7 +3,6 @@
 
 field f: Ref
 
-//:: ExpectedOutput(parser.error)
 predicate P(b: Set[Ref]) {
   forall l: Ref :: {l in b} l in b ==> acc(l.f)
 }

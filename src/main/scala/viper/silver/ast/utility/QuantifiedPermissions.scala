@@ -26,7 +26,7 @@ object QuantifiedPermissions {
   object QuantifiedPermissionAssertion {
     def unapply(forall: Forall): Option[(Forall, Exp, AccessPredicate)] = {
       forall match {
-        case SourceQuantifiedPermissionAssertion(`forall`, condition, res: AccessPredicate) =>
+        case SourceQuantifiedPermissionAssertion(`forall`, Implies(condition, res: AccessPredicate)) =>
           Some((forall, condition, res))
         case _ =>
           None
@@ -35,12 +35,12 @@ object QuantifiedPermissions {
   }
 
   object SourceQuantifiedPermissionAssertion {
-    def unapply(forall: Forall): Option[(Forall, Exp, Exp)] = {
+    def unapply(forall: Forall): Option[(Forall, Implies)] = {
       forall match {
-        case Forall(_, _, Implies(condition, rhs)) =>
-          Some((forall, condition, rhs))
+        case Forall(_, _, implies: Implies) =>
+          Some((forall, implies))
         case Forall(_, _, expr) =>
-          Some(forall, BoolLit(true)(forall.pos, forall.info), expr)
+          Some(forall, Implies(BoolLit(true)(forall.pos, forall.info, forall.errT), expr)(forall.pos, forall.info, forall.errT))
         case _ =>
           None
       }
@@ -53,89 +53,111 @@ object QuantifiedPermissions {
    *       e.g. someMethod.quantifiedFields.
    */
 
-  def quantifiedFields(root: Node, program: Program): collection.Set[Field] = {
+  def quantifiedFields(root: Member, program: Program): collection.Set[Field] = {
     val collected = mutable.LinkedHashSet[Field]()
-    val visited = mutable.Set[Member]()
-    val toVisit = mutable.Queue[Member]()
 
-    root match {
-      case m: Member => toVisit += m
-      case _ =>
+    def findQFields(n: Node): Unit = {
+      n visit {
+        case QuantifiedPermissionAssertion(_, _, acc: FieldAccessPredicate) =>
+          collected += acc.loc.field
+        case Forall(_, triggers, _) => collected ++= triggers flatMap (_.exps) collect { case fa: FieldAccess => fa.field }
+        case Exists(_, triggers, _) => collected ++= triggers flatMap (_.exps) collect { case fa: FieldAccess => fa.field }
+      }
     }
 
-    toVisit ++= Nodes.referencedMembers(root, program)
-
-    quantifiedFields(toVisit, collected, visited, program)
+    collectInDependencies(root, findQFields, program)
 
     collected
   }
 
-  /* TODO: See comment above about caching
-   * TODO: Unify with corresponding code for fields
-   */
-  def quantifiedPredicates(root: Node, program: Program): collection.Set[Predicate] = {
+  def quantifiedPredicates(root: Member, program: Program): collection.Set[Predicate] = {
     val collected = mutable.LinkedHashSet[Predicate]()
-    val visited = mutable.Set[Member]()
-    val toVisit = mutable.Queue[Member]()
 
-    root match {
-      case m: Member => toVisit += m
-      case _ =>
+    def findQPredicates(n: Node): Unit = {
+      n visit {
+        case QuantifiedPermissionAssertion(_, _, acc: PredicateAccessPredicate) =>
+          collected += program.findPredicate(acc.loc.predicateName)
+        case Forall(_, triggers, _) => collected ++= triggers flatMap (_.exps) collect { case pa: PredicateAccess => pa.loc(program) }
+        case Exists(_, triggers, _) => collected ++= triggers flatMap (_.exps) collect { case pa: PredicateAccess => pa.loc(program) }
+      }
     }
 
-    toVisit ++= Nodes.referencedMembers(root, program)
-
-    quantifiedPredicates(toVisit, collected, visited, program)
+    collectInDependencies(root, findQPredicates, program)
 
     collected
   }
 
+  def resourceTriggers(root: Member, program: Program): collection.Set[Resource] = {
+    val collected = mutable.LinkedHashSet[Resource]()
+
+    def extractResources(triggers: Seq[Trigger]): Unit = {
+      triggers.foreach(t => t.exps.foreach{
+        case r: ResourceAccess => collected += r.res(program)
+        case _ =>
+      })
+    }
+
+    def findResourceTriggers(n: Node): Unit = {
+      n visit {
+        case Forall(_, triggers, _) =>
+          extractResources(triggers)
+        case Exists(_, triggers, _) =>
+          extractResources(triggers)
+      }
+    }
+
+    collectInDependencies(root, findResourceTriggers, program)
+
+    collected
+  }
+
+  //TODO: Should this be done per member like quantified fields and predicates?
   def quantifiedMagicWands(root: Node, program: Program): collection.Set[MagicWandStructure.MagicWandStructure] = {
     (root collect {
       case QuantifiedPermissionAssertion(_, _, wand: MagicWand) => Seq(wand.structure(program))
       case Forall(_,triggers,_) => triggers flatMap (_.exps) collect {case wand: MagicWand => wand.structure(program)}
+      case Exists(_,triggers,_) => triggers flatMap (_.exps) collect {case wand: MagicWand => wand.structure(program)}
     } toSet) flatten
   }
 
-  private def quantifiedFields(toVisit: mutable.Queue[Member],
-                               collected: mutable.LinkedHashSet[Field],
-                               visited: mutable.Set[Member],
-                               program: Program) {
+  private def collectInDependencies(root: Member, collect: Node => Unit, program: Program) = {
+    val visited = mutable.Set[Member]()
+    val toVisit = mutable.Queue[Member]()
 
-    while (toVisit.nonEmpty) {
-      val root = toVisit.dequeue()
+    toVisit += root
 
-      root visit {
-        case QuantifiedPermissionAssertion(_, _, acc: FieldAccessPredicate) =>
-          collected += acc.loc.field
-        case Forall(_,triggers,_) => collected ++= triggers flatMap (_.exps) collect {case fa: FieldAccess => fa.field}
-      }
+    toVisit ++= Nodes.referencedMembers(root, program)
 
-      visited += root
-
-      utility.Nodes.referencedMembers(root, program) foreach (m =>
-        if (!visited.contains(m)) toVisit += m)
-    }
+    doCollectInDependencies(toVisit, root, collect, visited, program)
   }
 
-  private def quantifiedPredicates(toVisit: mutable.Queue[Member],
-                                   collected: mutable.LinkedHashSet[Predicate],
-                                   visited: mutable.Set[Member],
-                                   program: Program) {
+  private def doCollectInDependencies(toVisit: mutable.Queue[Member],
+                                      root: Member,
+                                      collect: Node => Unit,
+                                      visited: mutable.Set[Member],
+                                      program: Program): Unit = {
 
     while (toVisit.nonEmpty) {
-      val root = toVisit.dequeue()
+      val currentRoot = toVisit.dequeue()
 
-      root visit {
-        case QuantifiedPermissionAssertion(_, _, acc: PredicateAccessPredicate) =>
-          collected += program.findPredicate(acc.loc.predicateName)
-        case Forall(_,triggers,_) => collected ++= triggers flatMap (_.exps) collect {case pa: PredicateAccess => pa.loc(program)}
+      val relevantNodes: Seq[Node] = currentRoot match {
+        case m: Method if m != root =>
+          // use only specification of called methods
+          m.pres ++ m.posts
+        case f@Function(_, _, _, pres, posts, _) if f != root =>
+          // use only specification of called functions
+          pres ++ posts
+        case _ => Seq(currentRoot)
       }
 
-      visited += root
+      visited += currentRoot
 
-      utility.Nodes.referencedMembers(root, program) foreach (m =>
-        if (!visited.contains(m)) toVisit += m)
+      for (n <- relevantNodes){
+        collect(n)
+        utility.Nodes.referencedMembers(n, program) foreach (m =>
+          if (!visited.contains(m)) toVisit += m)
+
+      }
     }
   }
 
@@ -143,7 +165,7 @@ object QuantifiedPermissions {
 
 
     source match {
-      case SourceQuantifiedPermissionAssertion(_, cond, rhs) if (!rhs.isPure) =>
+      case SourceQuantifiedPermissionAssertion(_, Implies(cond, rhs)) if (!rhs.isPure) =>
         /* Source forall denotes a quantified permission assertion that potentially
          * needs to be desugared
          */
@@ -208,7 +230,7 @@ object QuantifiedPermissions {
 
                 newForalls0 ++ newForalls1
 
-          case nested@SourceQuantifiedPermissionAssertion(_, nestedCond, nestedRhs) => // no need to check nestedRhs is pure, or else consistency check should already have failed (e.h. impure lhs of implication)
+          case nested@SourceQuantifiedPermissionAssertion(_, Implies(nestedCond, nestedRhs)) => // no need to check nestedRhs is pure, or else consistency check should already have failed (e.h. impure lhs of implication)
             /* Source forall denotes a quantified permission assertion that potentially
              * needs to be desugared
              */
@@ -225,6 +247,20 @@ object QuantifiedPermissions {
 
             desugarSourceQuantifiedPermissionSyntax(Forall(vars ++ nestedVars, combinedTriggers, Implies(newCond, nestedRhs)(rhs.pos, rhs.info, rhs.errT))(source.pos,MakeInfoPair(source.info, nested.info),MakeTrafoPair(source.errT,nested.errT)))
 
+          case lt@Let(v, e, bod) => {
+            val forallWithoutLet = Forall(vars, triggers, bod)(source.pos, source.info)
+            // desugar the let-body
+            val desugaredWithoutLet = desugarSourceQuantifiedPermissionSyntax(forallWithoutLet)
+            desugaredWithoutLet.map{
+              case SourceQuantifiedPermissionAssertion(iqp, Implies(icond, irhs)) if (!irhs.isPure) =>
+                // Since the rhs cannot be a let-binding, we expand the let-expression in it.
+                // However, we still use a let in the condition; this preserves well-definedness if v isn't used anywhere
+                Forall(iqp.variables, iqp.triggers.map(t => t.replace(v.localVar, e)), Implies(And(cond, Let(v, e, icond)(lt.pos, lt.info, lt.errT))(lt.pos, lt.info, lt.errT), irhs.replace(v.localVar, e))(iqp.pos, iqp.info, iqp.errT))(iqp.pos, iqp.info, iqp.errT)
+              case iforall@Forall(ivars, itriggers, Implies(icond, ibod)) =>
+                // For all pure parts of the quantifier, we just re-wrap the body into a let.
+                Forall(ivars, itriggers, Implies(cond, Let(v, e, Implies(icond, ibod)(lt.pos, lt.info))(lt.pos, lt.info, lt.errT))(lt.pos, lt.info, lt.errT))(iforall.pos, iforall.info)
+            }
+          }
           case _ =>
             /* RHS does not need to be desugared (any further) */
             Seq(source)

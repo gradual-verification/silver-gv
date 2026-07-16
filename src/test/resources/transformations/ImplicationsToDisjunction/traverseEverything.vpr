@@ -8,13 +8,13 @@ method main() returns ()
    var b:Bool
    assert(true  ==> true)
 
-   while(true  ==> true)
+   while(true  ==> true) 
     invariant true  ==> true
    {
      b := true  ==> true
    }
 }
-/*
+
 function fun():Bool
  requires true  ==> true
  ensures true  ==> true
@@ -27,7 +27,7 @@ domain Domain{
         true  ==> true
     }
 }
-*/
+
 predicate pred()
 {
     true  ==> true

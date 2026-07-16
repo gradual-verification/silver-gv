@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 domain Array {
   function loc(a: Array, i: Int): Ref
   function len(a: Array): Int
@@ -35,7 +33,7 @@ method qpTest(a: Array, j:Int)
   assume dummy(j-2)
   loc(a,j).val := 5
   //:: UnexpectedOutput(assert.failed:assertion.false, /carbon/issue/202/)
-  assert exists k:Int :: dummy(k-2) && 0 <= k
+  assert exists k:Int :: dummy(k-2) && 0 <= k 
 }
 
 domain test{
@@ -48,5 +46,5 @@ method qpTestTwo(a: Array, j:Int)
 {
   assume other_dummy(j-2)
   loc(a,j).val := 5
-  assert exists k:Int :: other_dummy(k-2) ==> 0 <= k
+  assert exists k:Int :: other_dummy(k-2) ==> 0 <= k 
 }

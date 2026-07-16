@@ -1,6 +1,3 @@
-
-//:: IgnoreFile(/silicon/issue/208/)
-
 field f: Int
 
 method test01(x: Ref, b: Bool) {

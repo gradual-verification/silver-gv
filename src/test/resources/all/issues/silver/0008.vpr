@@ -3,8 +3,6 @@
 
 /* Various expressions used while fixing bugs in the parser */
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field f: Ref
 field g: Int
 

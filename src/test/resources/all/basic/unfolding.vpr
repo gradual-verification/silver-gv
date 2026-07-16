@@ -1,12 +1,14 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
-//:: IgnoreFile(/silicon/issue/208/)
+
+
+//:: IgnoreFile(/silicon/issue/233/)
 
 field f: Int
 field next: Ref
 
 predicate valid(r: Ref) {
-    acc(r.f, write) && acc(r.next, write) && (r.next != null ? (acc(valid(r.next), write)) : true)
+    acc(r.f, write) && acc(r.next, write) && ((r.next != null) ==> (acc(valid(r.next), write)))
 }
 
 method t1(r: Ref)
@@ -33,7 +35,7 @@ method t3(r: Ref)
 predicate deeper(r:Ref) {
      acc(r.f)
   && acc(r.next)
-  && ((r.next != null) ? (acc(deeper(r.next)) && (unfolding deeper(r.next) in true)) : true)
+  && ((r.next != null) ==> acc(deeper(r.next)) && (unfolding deeper(r.next) in true))
 }
 
 
@@ -65,8 +67,9 @@ method t6(r: Ref)
 predicate strange(r:Ref) {
      acc(r.f)
   && acc(r.next)
-  && (r.next != null ?
-      (acc(r.next.f) && acc(r.next.next) && acc(strange(r)) && unfolding strange(r) in true) : true)
+  && (r.next != null
+        ==>
+     acc(r.next.f) && acc(r.next.next) && acc(strange(r)) && unfolding strange(r) in true)
 }
 
 method t7(r: Ref)
@@ -133,3 +136,4 @@ method t13(r:Ref)
 {
   t12(r)
 }
+

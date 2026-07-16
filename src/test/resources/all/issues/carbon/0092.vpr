@@ -6,7 +6,6 @@
 field x: Int
 
 predicate Read(this: Ref) {
-  //:: ExpectedOutput(parser.error)
   acc(this.x, wildcard)
 }
 
@@ -18,6 +17,6 @@ method test(this: Ref, k: Perm)
 {
   unfold acc(Read(this), k)
   assert acc(this.x, wildcard)
-  // ExpectedOutput(assert.failed:insufficient.permission) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:insufficient.permission)
   assert acc(this.x, k)
 }

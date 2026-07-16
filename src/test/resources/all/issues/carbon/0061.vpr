@@ -2,7 +2,6 @@
 // http://creativecommons.org/publicdomain/zero/1.0/
 
 // chaliceSuite/examples/producer-consumer.chalice
-//:: ExpectedOutput(parser.error)
 domain GlobalKPermission {
 
   unique function globalK$(): Perm

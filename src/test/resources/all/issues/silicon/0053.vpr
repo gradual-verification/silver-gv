@@ -6,7 +6,7 @@ field val: Int
 
 predicate valid(this: Ref) {
   acc(this.next) && acc(this.val) &&
-  (this.next != null ? acc(valid(this.next)) : true)
+  (this.next != null ==> acc(valid(this.next)))
 }
 
 method traverse(list: Ref)
@@ -15,7 +15,7 @@ method traverse(list: Ref)
   var tmp: Ref := list
 
   while (tmp != null)
-    invariant ((tmp != null) ? acc(valid(tmp)) : true)
+    invariant (tmp != null) ==> acc(valid(tmp))
   {
     unfold acc(valid(tmp))
     tmp := tmp.next

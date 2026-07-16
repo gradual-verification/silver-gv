@@ -3,7 +3,6 @@
 
 method test()
 {
-  // ExpectedOutput(typechecker.error) // revive this annotation when parser error not expected in this test file - Jenna
-  //:: ExpectedOutput(parser.error)
+  //:: ExpectedOutput(typechecker.error)
   assert (forall i: Int :: {i+1} true)
 }

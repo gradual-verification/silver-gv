@@ -6,10 +6,11 @@
 
 package viper.silver.ast
 
-import viper.silver.ast.pretty.{Fixity, Infix, LeftAssociative, NonAssociative, Prefix, RightAssociative}
+import viper.silver.ast.pretty.{Fixity, Infix, LeftAssociative, NonAssociative, Prefix, PrettyPrintPrimitives, RightAssociative}
 import utility.{Consistency, DomainInstances, Nodes, Types, Visitor}
 import viper.silver.ast.MagicWandStructure.MagicWandStructure
-import viper.silver.cfg.silver.CfgGenerator
+import viper.silver.ast.utility.rewriter.StrategyBuilder
+import viper.silver.cfg.silver.{CfgGenerator, SilverCfg}
 import viper.silver.verifier.ConsistencyError
 import viper.silver.utility.{CacheHelper, DependencyAware}
 
@@ -19,6 +20,13 @@ import scala.reflect.ClassTag
 /** A Silver program. */
 case class Program(domains: Seq[Domain], fields: Seq[Field], functions: Seq[Function], predicates: Seq[Predicate], methods: Seq[Method], extensions: Seq[ExtensionMember])(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos)
   extends Node with DependencyAware with Positioned with Infoed with Scope with TransformableErrors {
+
+  lazy val domainsByName: Map[String, Domain] = domains.map(x => (x.name, x)).toMap
+  lazy val domainFunctionsByName: Map[String, DomainFunc] = domains.flatMap(_.functions).map(x => (x.name, x)).toMap
+  lazy val fieldsByName: Map[String, Field] = fields.map(x => (x.name, x)).toMap
+  lazy val functionsByName: Map[String, Function] = functions.map(x => (x.name, x)).toMap
+  lazy val predicatesByName: Map[String, Predicate] = predicates.map(x => (x.name, x)).toMap
+  lazy val methodsByName: Map[String, Method] = methods.map(x => (x.name, x)).toMap
 
   val scopedDecls: Seq[Declaration] =
     domains ++ fields ++ functions ++ predicates ++ methods ++ extensions ++
@@ -30,11 +38,12 @@ case class Program(domains: Seq[Domain], fields: Seq[Field], functions: Seq[Func
     }).distinct
 
   override lazy val check : Seq[ConsistencyError] =
-    Consistency.checkContextDependentConsistency(this) ++
+    Consistency.checkContextDependentConsistency(this, this) ++
     Consistency.checkNoFunctionRecursesViaPreconditions(this) ++
     checkMethodCallsAreValid ++
     checkFunctionApplicationsAreValid ++
     checkDomainFunctionApplicationsAreValid ++
+    checkPredicateAccessesAreValid ++
     checkAbstractPredicatesUsage ++
     checkIdentifiers
 
@@ -46,7 +55,7 @@ case class Program(domains: Seq[Domain], fields: Seq[Field], functions: Seq[Func
       case None => /* Nothing to do */
       case Some(actualBody) =>
         for (c@MethodCall(name, args, targets) <- actualBody) {
-          methods.find(_.name == name) match {
+          findMethodOptionally(name) match {
             case Some(existingMethod) =>
               if(!Consistency.areAssignable(existingMethod.formalReturns, targets))
                 s :+= ConsistencyError(s"Formal returns ${existingMethod.formalReturns} of method $name are not assignable to targets $targets.", c.pos)
@@ -67,8 +76,7 @@ case class Program(domains: Seq[Domain], fields: Seq[Field], functions: Seq[Func
     var errors = Seq.empty[ConsistencyError]
 
     def check(loc: PredicateAccess, pos: Position): Unit = {
-      predicates
-        .find(_.name == loc.predicateName)
+      findPredicateOptionally(loc.predicateName)
         .foreach(predicate => {
           if (predicate.body.isEmpty)
             errors :+= ConsistencyError(s"Cannot unfold $loc because ${loc.predicateName}  is abstract.", pos)
@@ -91,7 +99,7 @@ case class Program(domains: Seq[Domain], fields: Seq[Field], functions: Seq[Func
     var s = Seq.empty[ConsistencyError]
 
     for (funcApp@FuncApp(name, args) <- this) {
-      this.findFunctionOptionally(name) match {
+      findFunctionOptionally(name) match {
         case None => // Consistency error already reported by checkIdentifiers
         case Some(funcDef) => {
           if (!Consistency.areAssignable(args, funcDef.formalArgs)) {
@@ -113,6 +121,28 @@ case class Program(domains: Seq[Domain], fields: Seq[Field], functions: Seq[Func
     s
   }
 
+  /** Checks that the predicate access arguments are assignable to formalArgs.
+    **/
+  lazy val checkPredicateAccessesAreValid: Seq[ConsistencyError] = {
+    var s = Seq.empty[ConsistencyError]
+
+    for (predAcc@PredicateAccess(args, name) <- this) {
+      findPredicateOptionally(name) match {
+        case None => // Consistency error already reported by checkIdentifiers
+        case Some(predDef) => {
+          if (!Consistency.areAssignable(args, predDef.formalArgs)) {
+            s :+= ConsistencyError(
+              s"Predicate $name with formal arguments ${predDef.formalArgs} cannot be used with provided arguments $args.",
+              predAcc.pos
+            )
+          }
+        }
+      }
+    }
+
+    s
+  }
+
   /** Checks that the applied domain functions exists, that the arguments of function applications are assignable to
     * formalArgs, that the type of function applications matches with the type of the function definition and that also
     * the name of the domain matches.
@@ -121,13 +151,13 @@ case class Program(domains: Seq[Domain], fields: Seq[Field], functions: Seq[Func
     var s = Seq.empty[ConsistencyError]
 
     for (funcApp@DomainFuncApp(name, args, typVarMap) <- this) {
-      this.findDomainFunctionOptionally(name) match {
+      findDomainFunctionOptionally(name) match {
         case None => s :+= ConsistencyError(s"No domain function named $name found in the program.", funcApp.pos)
         case Some(funcDef) => {
           if (!Consistency.areAssignable(args, funcDef.formalArgs map {
             fa =>
               // substitute parameter types
-              LocalVarDecl(fa.name, fa.typ.substitute(typVarMap))(fa.pos)
+              UnnamedLocalVarDecl(fa.typ.substitute(typVarMap))(fa.pos)
           })) {
             s :+= ConsistencyError(
               s"Domain function $name with formal arguments ${funcDef.formalArgs} cannot be applied to provided arguments $args.",
@@ -184,23 +214,34 @@ case class Program(domains: Seq[Domain], fields: Seq[Field], functions: Seq[Func
     }
 
     def checkNamesInScope(currentScope: Scope, dMap: immutable.HashMap[String, Declaration]) : Seq[ConsistencyError] = {
-      var declarationMap = dMap
+      var newMap = immutable.HashMap.empty[String, Declaration]
       var s: Seq[ConsistencyError] = Seq.empty[ConsistencyError]
       //check name declarations
       currentScope.scopedDecls.foreach(l=> {
-        if(!Consistency.validUserDefinedIdentifier(l.name)) s :+= ConsistencyError(s"${l.name} is not a valid identifier.", l.pos)
-        declarationMap.get(l.name) match {
-          case Some(_: Declaration) => s :+= ConsistencyError(s"Duplicate identifier ${l.name} found.", l.pos)
-          case None => declarationMap += (l.name -> l)
+        if(!Consistency.validUserDefinedIdentifier(l.name))
+          s :+= ConsistencyError(s"${l.name} is not a valid identifier.", l.pos)
+
+        newMap.get(l.name) match {
+          case Some(_: Declaration) => s :+= ConsistencyError(s"Duplicate identifier `${l.name}` found.", l.pos)
+          case None => newMap += (l.name -> l)
         }
       })
+      // Override duplicate keys in old map
+      val declarationMap = dMap ++ newMap
 
       //check name uses
-      Visitor.visitOpt(currentScope.asInstanceOf[Node], Nodes.subnodes){n=> {
+      Visitor.visitOpt(currentScope.asInstanceOf[Node], Nodes.subnodes){ n => {
         n match {
-          case sc: Scope => if (sc == currentScope) true else {
-            s ++= checkNamesInScope(sc, declarationMap)
-            false
+          case sc: Scope => {
+            if (sc == currentScope)
+              true
+            else {
+              n match {
+                case _: DomainFunc => s ++= checkNamesInScope(sc, immutable.HashMap.empty[String, Declaration])
+                case _ => s ++= checkNamesInScope(sc, declarationMap)
+              }
+              false
+            }
           }
           case _ =>
             val optionalError = n match {
@@ -229,23 +270,27 @@ case class Program(domains: Seq[Domain], fields: Seq[Field], functions: Seq[Func
 
   lazy val groundTypeInstances = DomainInstances.findNecessaryTypeInstances(this)
 
-  lazy val members: Seq[Member with Serializable] = domains ++ fields ++ functions ++ predicates ++ methods
+  val members: Seq[Member with Serializable] = domains ++ fields ++ functions ++ predicates ++ methods ++ extensions
+
+  def findFieldOptionally(name: String): Option[Field] = this.fieldsByName.get(name)
 
   def findField(name: String): Field = {
-    this.fields.find(_.name == name) match {
+    findFieldOptionally(name) match {
       case Some(f) => f
       case None => sys.error("Field name " + name + " not found in program.")
     }
   }
 
+  def findMethodOptionally(name: String): Option[Method] = this.methodsByName.get(name)
+
   def findMethod(name: String): Method = {
-    this.methods.find(_.name == name) match {
+    findMethodOptionally(name) match {
       case Some(m) => m
       case None => sys.error("Method name " + name + " not found in program.")
     }
   }
 
-  def findFunctionOptionally(name: String): Option[Function] = this.functions.find(_.name == name)
+  def findFunctionOptionally(name: String): Option[Function] = this.functionsByName.get(name)
 
   def findFunction(name: String): Function = {
     findFunctionOptionally(name) match {
@@ -254,21 +299,25 @@ case class Program(domains: Seq[Domain], fields: Seq[Field], functions: Seq[Func
     }
   }
 
+  def findPredicateOptionally(name: String): Option[Predicate] = this.predicatesByName.get(name)
+
   def findPredicate(name: String): Predicate = {
-    this.predicates.find(_.name == name) match {
+    findPredicateOptionally(name) match {
       case Some(p) => p
       case None => sys.error("Predicate name " + name + " not found in program.")
     }
   }
 
+  def findDomainOptionally(name: String): Option[Domain] = this.domainsByName.get(name)
+
   def findDomain(name: String): Domain = {
-    this.domains.find(_.name == name) match {
+    findDomainOptionally(name) match {
       case Some(d) => d
       case None => sys.error("Domain name " + name + " not found in program.")
     }
   }
 
-  def findDomainFunctionOptionally(name: String): Option[DomainFunc] = this.domains.flatMap(_.functions).find(_.name == name)
+  def findDomainFunctionOptionally(name: String): Option[DomainFunc] = this.domainFunctionsByName.get(name)
 
   def findDomainFunction(name: String): DomainFunc = {
     findDomainFunctionOptionally(name) match {
@@ -312,12 +361,22 @@ case class Field(name: String, typ: Type)(val pos: Position = NoPosition, val in
 /** A predicate declaration. */
 case class Predicate(name: String, formalArgs: Seq[LocalVarDecl], body: Option[Exp])(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends Location {
   override lazy val check : Seq[ConsistencyError] =
-    (if (body.isDefined) Consistency.checkNonPostContract(body.get) else Seq()) ++
+    (if (body.isDefined) Consistency.checkNonPostContract(body.get) ++ Consistency.checkWildcardUsage(body.get, false) else Seq()) ++
     (if (body.isDefined && !Consistency.noOld(body.get))
       Seq(ConsistencyError("Predicates must not contain old expressions.",body.get.pos))
      else Seq()) ++
     (if (body.isDefined && !(Consistency.noPerm(body.get) && Consistency.noForPerm(body.get)))
-      Seq(ConsistencyError("perm and forperm expressions are not allowed in predicate bodies", body.get.pos)) else Seq())
+      Seq(ConsistencyError("perm and forperm expressions are not allowed in predicate bodies", body.get.pos)) else Seq()) ++
+    {
+      var errors = Seq.empty[ConsistencyError]
+      if (body.isDefined) {
+        StrategyBuilder.SlimVisitor[Node]({
+          case m: MagicWand => errors ++= Seq(ConsistencyError("Magic wands are not supported in predicates.", m.pos))
+          case _ =>
+        }).execute[Node](body.get)
+      }
+      errors
+    }
 
   val scopedDecls: Seq[Declaration] = formalArgs
   def isAbstract = body.isEmpty
@@ -352,11 +411,13 @@ case class Method(name: String, formalArgs: Seq[LocalVarDecl], formalReturns: Se
   }
 
   def deepCollectInBody[A](f: PartialFunction[Node, A]): Seq[A] = body match {
+    case null => Nil
+    case None => Nil
     case Some(actualBody) => actualBody.deepCollect(f)
-    case None => Seq()
   }
 
-  val scopedDecls: Seq[Declaration] = formalArgs ++ formalReturns
+  def labels: Seq[Label] = deepCollectInBody { case l: Label => l }
+  val scopedDecls: Seq[Declaration] = formalArgs ++ formalReturns ++ labels
 
   override lazy val check: Seq[ConsistencyError] =
     pres.flatMap(Consistency.checkPre) ++
@@ -365,7 +426,8 @@ case class Method(name: String, formalArgs: Seq[LocalVarDecl], formalReturns: Se
     body.fold(Seq.empty[ConsistencyError])(Consistency.checkNoArgsReassigned(formalArgs, _)) ++
     (if (!((formalArgs ++ formalReturns) forall (_.typ.isConcrete))) Seq(ConsistencyError("Formal args and returns must have concrete types.", pos)) else Seq()) ++
     (pres ++ posts).flatMap(Consistency.checkNoPermForpermExceptInhaleExhale) ++
-    checkReturnsNotUsedInPreconditions
+    checkReturnsNotUsedInPreconditions ++
+    (pres ++ posts ++ body.toSeq).flatMap(Consistency.checkWildcardUsage(_, false))
 
   lazy val checkReturnsNotUsedInPreconditions: Seq[ConsistencyError] = {
     val varsInPreconditions: Seq[LocalVar] = pres flatMap {_.deepCollect {case l: LocalVar => l}}
@@ -384,20 +446,7 @@ case class Method(name: String, formalArgs: Seq[LocalVarDecl], formalReturns: Se
   /**
     * Returns a control flow graph that corresponds to this method.
     */
-  def toCfg(simplify: Boolean = true) = CfgGenerator.methodToCfg(this, simplify)
-}
-
-object MethodWithLabelsInScope {
-  def apply(name: String, formalArgs: Seq[LocalVarDecl], formalReturns: Seq[LocalVarDecl], pres: Seq[Exp], posts: Seq[Exp], body: Option[Seqn])
-                 (pos: Position = NoPosition, info: Info = NoInfo, errT: ErrorTrafo = NoTrafos): Method = {
-    val newBody = body match {
-      case Some(actualBody) =>
-        val newScopedDecls = actualBody.scopedDecls ++ actualBody.deepCollect({case l: Label => l})
-        Some(actualBody.copy(scopedDecls = newScopedDecls)(actualBody.pos, actualBody.info, actualBody.errT))
-      case _ => body
-    }
-    Method(name, formalArgs, formalReturns, pres, posts, newBody)(pos, info, errT)
-  }
+  def toCfg(simplify: Boolean = true, detect: Boolean = true): SilverCfg = CfgGenerator.methodToCfg(this, simplify, detect)
 }
 
 /** A function declaration */
@@ -406,13 +455,25 @@ case class Function(name: String, formalArgs: Seq[LocalVarDecl], typ: Type, pres
     posts.flatMap(p=>{ if(!Consistency.noOld(p))
       Seq(ConsistencyError("Function post-conditions must not have old expressions.", p.pos)) else Seq()}) ++
     (pres ++ posts).flatMap(Consistency.checkNoPermForpermExceptInhaleExhale) ++
+    (pres ++ posts ++ body.toSeq).flatMap(Consistency.checkWildcardUsage(_, true)) ++
     (if(!(body forall (_ isSubtype typ))) Seq(ConsistencyError("Type of function body must match function type.", pos)) else Seq() ) ++
+    (posts flatMap (p => if (!Consistency.noPerm(p) || !Consistency.noForPerm(p)) Seq(ConsistencyError("perm and forperm expressions are not allowed in function postconditions", p.pos)) else Seq() )) ++
     pres.flatMap(Consistency.checkPre) ++
     posts.flatMap(Consistency.checkPost) ++
     posts.flatMap(p => if (!Consistency.noPermissions(p))
       Seq(ConsistencyError("Function post-conditions must not contain permissions.", p.pos)) else Seq()) ++
     (if(body.isDefined) Consistency.checkFunctionBody(body.get) else Seq()) ++
-    (if(!Consistency.noDuplicates(formalArgs)) Seq(ConsistencyError("There must be no duplicates in formal args.", pos)) else Seq())
+    (if(!Consistency.noDuplicates(formalArgs)) Seq(ConsistencyError("There must be no duplicates in formal args.", pos)) else Seq()) ++
+    {
+      var errors = Seq.empty[ConsistencyError]
+      pres.foreach(pre => {
+        StrategyBuilder.SlimVisitor[Node]({
+          case m: MagicWand => errors ++= Seq(ConsistencyError("Magic wands are not supported in function's preconditions.", m.pos))
+          case _ =>
+        }).execute[Node](pre)
+      })
+      errors
+    }
 
   val scopedDecls: Seq[Declaration] = formalArgs
   /**
@@ -428,6 +489,8 @@ case class Function(name: String, formalArgs: Seq[LocalVarDecl], typ: Type, pres
   })
 
   def isAbstract = body.isEmpty
+
+  lazy val isPure = pres.forall(_.isPure)
 
   override def isValid : Boolean /* Option[Message] */ = this match {
     case _ if (for (e <- pres ++ posts) yield e.contains[MagicWand]).contains(true) => false
@@ -445,29 +508,39 @@ case class Function(name: String, formalArgs: Seq[LocalVarDecl], typ: Type, pres
 }
 
 
+trait AnyLocalVarDecl extends Hashable with Positioned with Infoed with Typed with TransformableErrors {
+  override def getMetadata: Seq[Any] = {
+    Seq(pos, info, errT)
+  }
+}
+
+// --- Unnamed local variable declarations
+
+case class UnnamedLocalVarDecl(typ: Type)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends AnyLocalVarDecl
+
+
 // --- Local variable declarations
 
 /**
  * Local variable declaration.  Note that these are not statements in the AST, but
  * rather occur as part of a method, loop, function, etc.
  */
-case class LocalVarDecl(name: String, typ: Type)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends Hashable with Positioned with Infoed with Typed with Declaration with TransformableErrors {
+case class LocalVarDecl(name: String, typ: Type)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends AnyLocalVarDecl with Declaration {
   /**
    * Returns a local variable with equivalent information
    */
   lazy val localVar = LocalVar(name, typ)(pos, info, errT)
-
-  override def getMetadata:Seq[Any] = {
-    Seq(pos, info, errT)
-  }
 }
 
 
 // --- Domains and domain members
 
 /** A user-defined domain. */
-case class Domain(name: String, functions: Seq[DomainFunc], axioms: Seq[DomainAxiom], typVars: Seq[TypeVar] = Nil)
+case class Domain(name: String, functions: Seq[DomainFunc], axioms: Seq[DomainAxiom], typVars: Seq[TypeVar] = Nil, interpretations: Option[Map[String, String]] = None)
                  (val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends Member with Positioned with Infoed with TransformableErrors {
+
+  override lazy val check : Seq[ConsistencyError] =
+    if (typVars.nonEmpty && interpretations.nonEmpty) Seq(ConsistencyError("Interpreted domains cannot have type arguments.", pos)) else Seq()
 
   val scopedDecls = Seq()
   override def getMetadata:Seq[Any] = {
@@ -515,8 +588,8 @@ object Substitution{
   def toString(s : Substitution) : String = s.mkString(",")
 }
 /** Domain function which is not a binary or unary operator. */
-case class DomainFunc(name: String, formalArgs: Seq[LocalVarDecl], typ: Type, unique: Boolean = false)
-                     (val pos: Position = NoPosition, val info: Info = NoInfo,val domainName : String, val errT: ErrorTrafo = NoTrafos)
+case class DomainFunc(name: String, formalArgs: Seq[AnyLocalVarDecl], typ: Type, unique: Boolean = false, interpretation: Option[String] = None)
+                     (val pos: Position = NoPosition, val info: Info = NoInfo, val domainName: String, val errT: ErrorTrafo = NoTrafos)
                       extends AbstractDomainFunc with DomainMember with Declaration {
   override lazy val check : Seq[ConsistencyError] =
     if (unique && formalArgs.nonEmpty) Seq(ConsistencyError("Only constants, i.e. nullary domain functions can be unique.", pos)) else Seq()
@@ -524,7 +597,7 @@ case class DomainFunc(name: String, formalArgs: Seq[LocalVarDecl], typ: Type, un
   override def getMetadata:Seq[Any] = {
     Seq(pos, info, errT)
   }
-  val scopedDecls: Seq[Declaration] = formalArgs
+  val scopedDecls: Seq[Declaration] = formalArgs.filter(p => p.isInstanceOf[LocalVarDecl]).asInstanceOf[Seq[LocalVarDecl]]
 }
 
 // --- Common functionality
@@ -544,7 +617,7 @@ sealed trait DomainMember extends Hashable with Positioned with Infoed with Scop
 
 /** Common ancestor for things with formal arguments. */
 sealed trait Callable {
-  def formalArgs: Seq[LocalVarDecl]
+  def formalArgs: Seq[AnyLocalVarDecl]
   def name: String
 }
 
@@ -651,13 +724,14 @@ sealed abstract class RelOp(val op: String) extends BoolDomainFunc {
 case object AddOp extends SumOp("+") with IntBinOp with IntDomainFunc
 case object SubOp extends SumOp("-") with IntBinOp with IntDomainFunc
 case object MulOp extends ProdOp("*") with IntBinOp with IntDomainFunc
-case object DivOp extends ProdOp("/") with IntBinOp with IntDomainFunc
+case object DivOp extends ProdOp("\\") with IntBinOp with IntDomainFunc
 case object ModOp extends ProdOp("%") with IntBinOp with IntDomainFunc
 
 // Arithmetic permission operators
 case object PermAddOp extends SumOp("+") with PermBinOp with PermDomainFunc
 case object PermSubOp extends SumOp("-") with PermBinOp with PermDomainFunc
 case object PermMulOp extends ProdOp("*") with PermBinOp with PermDomainFunc
+case object DebugPermMinOp extends SumOp("min") with PermBinOp with PermDomainFunc
 case object IntPermMulOp extends ProdOp("*") with BinOp with PermDomainFunc {
   lazy val leftTyp = Int
   lazy val rightTyp = Perm
@@ -733,9 +807,20 @@ case object NotOp extends UnOp with BoolDomainFunc {
   lazy val fixity = Prefix
 }
 
+object BackendFunc {
+  def apply(name: String, smtName: String, domain: String, typ: Type, formalArgs: Seq[LocalVarDecl])
+                    (pos: Position = NoPosition, info: Info = NoInfo, errT: ErrorTrafo = NoTrafos): DomainFunc = {
+    DomainFunc(name, formalArgs, typ, false, Some(smtName))(pos, info, domain, errT)
+  }
+
+  def unapply(df: DomainFunc) =
+    if (df.interpretation.isDefined) Some((df.name, df.interpretation.get, df.typ, df.formalArgs)) else None
+}
+
 /**
   * The Extension Member trait provides the way to expand the Ast to include new Top Level declarations
   */
-trait ExtensionMember extends Member{
+trait ExtensionMember extends Member with Serializable {
   def extensionSubnodes: Seq[Node]
+  def prettyPrint: PrettyPrintPrimitives#Cont
 }

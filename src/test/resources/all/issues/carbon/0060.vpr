@@ -17,7 +17,6 @@ method TestuseZZ$(this: Ref)
   requires acc(ZZ(this), write)
 {
   // (ZZ,100)
-  //:: ExpectedOutput(parser.error)
   assert acc(ZZ(this), 100 / 100)
 
   unfold acc(ZZ(this), 40 / 100)

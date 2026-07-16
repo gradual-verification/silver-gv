@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 function elements(this: Array): Set[Int]
   requires
     forall i: Int :: {loc(this, i).val}{i in [0..length(this))}
@@ -18,7 +16,7 @@ method swap01(a: Array, x: Int, y: Int)
    requires x < y
 {
   label pre
-
+  
    assume forall e:Int :: e in elements(a) ==> exists j:Int :: j in [0..length(a))
 
    var tmp: Int := loc(a,x).val
@@ -41,7 +39,7 @@ method swap02(a: Array, x: Int, y: Int)
   inhale x < y
 
   label pre
-
+  
   assume forall e:Int :: e in elements(a) ==> exists j:Int :: j in [0..length(a))
 
   var tmp: Int := loc(a,x).val
@@ -53,7 +51,7 @@ method swap02(a: Array, x: Int, y: Int)
 }
 
 
-field val: Int
+field val: Int 
 
 domain Array {
   function loc(a: Array, i: Int): Ref

@@ -3,8 +3,6 @@
 
 //:: IgnoreFile(/carbon/issue/216/)
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field value: Int;
 field next: Ref;
 

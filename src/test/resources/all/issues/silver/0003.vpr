@@ -18,6 +18,18 @@ method t11(r: Ref) returns ()
     }
 }
 
+method t1(r: Ref)
+  requires acc(r.f)
+{
+  while (true)
+    invariant true
+    //:: ExpectedOutput(invariant.not.preserved:insufficient.permission)
+    invariant acc(r.f)
+  {
+    exhale acc(r.f)
+  }
+}
+
 method t2(r: Ref)
   requires r != null
 {

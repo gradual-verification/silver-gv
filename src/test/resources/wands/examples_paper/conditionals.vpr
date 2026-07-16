@@ -7,8 +7,6 @@
  * are provided by the LHS.
  */
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field f: Bool
 field g: Int
 field h: Ref
@@ -34,10 +32,10 @@ method conditionals01(x: Ref)
 
   apply A --* B
     // Applying the wand instance requires giving up permissions to x.f, but
-    // we gain them back right away. x.f has an unknown value b'' (in
-    // principle, this should be the same unknown value b as before the
+    // we gain them back right away. x.f has an unknown value b'' (in 
+    // principle, this should be the same unknown value b as before the 
     // apply; see regression/issue024.vpr for a discussion of this issue).
-    // Depending on b'' (i.e. the value of x.f), we potentially also got
+    // Depending on b'' (i.e. the value of x.f), we potentially also got 
     // permissions to x.g from the apply. The current state thus satisfies:
     //
     //   acc(x.f) * x.f == b'' * (!b' ==> acc(x.g)) * (b'' ==> acc(x.g))
@@ -61,7 +59,7 @@ method conditionals02(x: Ref)
   define A acc(x.f)
   define B acc(x.f) && (x.f ? acc(x.g) : acc(x.h))
 
-    // The current state holds permissions to x.f, x.g and x.h, and x.f has
+    // The current state holds permissions to x.f, x.g and x.h, and x.f has 
     // some unknown value b (the other values are irrelevant).
     // The current state thus satisfies the assertion:
     //
@@ -69,11 +67,11 @@ method conditionals02(x: Ref)
 
   package A --* B
     // The LHS provides a hypothetical state in which x.f has some value b'.
-    // Since the value of b' is unknown, both acc(x.g) and acc(x.h) must be
+    // Since the value of b' is unknown, both acc(x.g) and acc(x.h) must be 
     // part of the footprint of the wand. The current state thus satisfies:
     //
     //   acc(x.f) * x.f == b * (!b' ? acc(x.g) : acc(x.h)) * (A --* B)
-
+    
   apply A --* B
     // After applying the wand, x.f has an unknown value b'' (resulting from an
     // incompleteness in our implementation, as explained above).
@@ -91,10 +89,10 @@ method conditionals02(x: Ref)
     //
     // The reason for this is the separating conjunction, in particular, the
     // fact that acc(x.f) * acc(x.f) is equivalent to false. Let us consider
-    // the truth table for b' and b'' (where t/f stand for true/false), and
-    // the implications of the their values on the assertion from above (the
+    // the truth table for b' and b'' (where t/f stand for true/false), and 
+    // the implications of the their values on the assertion from above (the 
     // one after the apply statement; ignoring x.f):
-    //
+    //    
     //     b' | b'' | assertion
     //   -----------------------------------
     //     t  |  t  | acc(x.h) * acc(x.g)
@@ -107,6 +105,6 @@ method conditionals02(x: Ref)
     // applied either comprised acc(x.g) or acc(x.h), but not both, and that
     // we are now again in a state where we hold permissions to all three
     // fields.
-
+    
   assert acc(x.f) && acc(x.g) && acc(x.h)
 }

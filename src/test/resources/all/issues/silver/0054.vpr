@@ -4,18 +4,17 @@
 method m1()
 {
     var k: Perm
-    // ExpectedOutput(consistency.error) // revive this annotation when parser error below not expected in this test file - Jenna
-    //:: ExpectedOutput(parser.error)
+    //:: ExpectedOutput(consistency.error)
     k := wildcard
 
-    // ExpectedOutput(consistency.error) // revive this annotation when parser error not expected in this test file - Jenna
+    //:: ExpectedOutput(consistency.error)
     assert wildcard < k
 }
 
 method m2()
 {
     var k: Perm
-    // ExpectedOutput(consistency.error) // revive this annotation when parser error not expected in this test file - Jenna
+    //:: ExpectedOutput(consistency.error)
     k := wildcard
 }
 
@@ -32,3 +31,4 @@ method m3(obj: Ref)
         i := i - obj.f
     }
 }
+

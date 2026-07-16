@@ -7,12 +7,13 @@
 package viper.silver.ast
 
 import java.util.concurrent.atomic.AtomicInteger
-
+import scala.collection.mutable
 import scala.reflect.ClassTag
 import pretty.FastPrettyPrinter
 import utility._
 import viper.silver.ast.utility.rewriter.Traverse.Traverse
 import viper.silver.ast.utility.rewriter.{Rewritable, StrategyBuilder, Traverse}
+import viper.silver.parser.PNode
 import viper.silver.verifier.errors.ErrorNode
 import viper.silver.verifier.{AbstractVerificationError, ConsistencyError, ErrorReason}
 
@@ -54,7 +55,7 @@ Some design choices:
   * Note that all but Program are transitive subtypes of `Node` via `Hashable`. The reason is
   * that AST node hashes may depend on the entire program, not just their sub-AST.
   */
-trait Node extends Traversable[Node] with Rewritable {
+trait Node extends Iterable[Node] with Rewritable {
 
   /** @see [[Nodes.subnodes()]] */
   def subnodes = Nodes.subnodes(this)
@@ -67,36 +68,45 @@ trait Node extends Traversable[Node] with Rewritable {
     Visitor.reduceWithContext(this, Nodes.subnodes)(context, enter, combine)
   }
 
-  /** Applies the function `f` to the AST node, then visits all subnodes. */
-  def foreach[A](f: Node => A) = Visitor.visit(this, Nodes.subnodes) { case a: Node => f(a) }
+  /** Apply the given function to the AST node and all its subnodes. */
+  override def foreach[A](f: Node => A) = Visitor.visit(this, Nodes.subnodes) { case a: Node => f(a) }
+
+  /** Builds a new collection with all the AST nodes and returns an iterator over it. */
+  def iterator: Iterator[Node] = {
+    val elements = mutable.Queue.empty[Node]
+    for (x <- this) {
+      elements.append(x)
+    }
+    elements.iterator
+  }
 
   /** @see [[Visitor.visit()]] */
-  def visit[A](f: PartialFunction[Node, A]) {
+  def visit[A](f: PartialFunction[Node, A]): Unit = {
     Visitor.visit(this, Nodes.subnodes)(f)
   }
 
   /** @see [[Visitor.visitWithContext()]] */
-  def visitWithContext[C](c: C)(f: C => PartialFunction[Node, C]) {
+  def visitWithContext[C](c: C)(f: C => PartialFunction[Node, C]): Unit = {
     Visitor.visitWithContext(this, Nodes.subnodes, c)(f)
   }
 
   /** @see [[Visitor.visitWithContextManually()]] */
-  def visitWithContextManually[C, A](c: C)(f: C => PartialFunction[Node, A]) {
+  def visitWithContextManually[C, A](c: C)(f: C => PartialFunction[Node, A]): Unit = {
     Visitor.visitWithContextManually(this, Nodes.subnodes, c)(f)
   }
 
   /** @see [[Visitor.visit()]] */
-  def visit[A](f1: PartialFunction[Node, A], f2: PartialFunction[Node, A]) {
+  def visit[A](f1: PartialFunction[Node, A], f2: PartialFunction[Node, A]): Unit = {
     Visitor.visit(this, Nodes.subnodes, f1, f2)
   }
 
   /** @see [[Visitor.visitOpt()]] */
-  def visitOpt(f: Node => Boolean) {
+  def visitOpt(f: Node => Boolean): Unit = {
     Visitor.visitOpt(this, Nodes.subnodes)(f)
   }
 
   /** @see [[Visitor.visitOpt()]] */
-  def visitOpt[A](f1: Node => Boolean, f2: Node => A) {
+  def visitOpt[A](f1: Node => Boolean, f2: Node => A): Unit = {
     Visitor.visitOpt(this, Nodes.subnodes, f1, f2)
   }
 
@@ -117,25 +127,37 @@ trait Node extends Traversable[Node] with Rewritable {
   /** @see [[viper.silver.ast.utility.ViperStrategy]] */
   def transform(pre: PartialFunction[Node, Node] = PartialFunction.empty,
                 recurse: Traverse = Traverse.Innermost)
-               : this.type =
+               : this.type = {
 
-  StrategyBuilder.Slim[Node](pre, recurse) execute[this.type] (this)
+    StrategyBuilder.Slim[Node](pre, recurse) execute[this.type] (this)
+  }
 
+  def transformForceCopy(pre: PartialFunction[Node, Node] = PartialFunction.empty,
+                         recurse: Traverse = Traverse.Innermost)
+                         : this.type = {
+
+    StrategyBuilder.Slim[Node](pre, recurse).forceCopy() execute[this.type] (this)
+  }
 
   /**
     * Allows a transformation with a custom context threaded through
     *
     * @see [[viper.silver.ast.utility.ViperStrategy]] */
   def transformWithContext[C](transformation: PartialFunction[(Node,C), (Node, C)] = PartialFunction.empty,
-                             initialContext: C,
-                recurse: Traverse = Traverse.Innermost)
-  : this.type =
+                              initialContext: C,
+                              recurse: Traverse = Traverse.Innermost)
+                             : this.type = {
+
     ViperStrategy.CustomContext[C](transformation, initialContext, recurse) execute[this.type] (this)
+  }
 
   def transformNodeAndContext[C](transformation: PartialFunction[(Node,C), (Node, C)],
                                  initialContext: C,
-                                 recurse: Traverse = Traverse.Innermost) : this.type =
+                                 recurse: Traverse = Traverse.Innermost)
+                                : this.type = {
+
     StrategyBuilder.RewriteNodeAndContext[Node, C](transformation, initialContext, recurse).execute[this.type](this)
+  }
 
   def replace(original: Node, replacement: Node): this.type =
     this.transform { case `original` => replacement }
@@ -146,11 +168,11 @@ trait Node extends Traversable[Node] with Rewritable {
 
   /** @see [[Visitor.deepCollect()]] */
   def deepCollect[A](f: PartialFunction[Node, A]): Seq[A] =
-  Visitor.deepCollect(Seq(this), Nodes.subnodes)(f)
+    Visitor.deepCollect(Seq(this), Nodes.subnodes)(f)
 
   /** @see [[Visitor.shallowCollect()]] */
   def shallowCollect[R](f: PartialFunction[Node, R]): Seq[R] =
-  Visitor.shallowCollect(Seq(this), Nodes.subnodes)(f)
+    Visitor.shallowCollect(Seq(this), Nodes.subnodes)(f)
 
   def contains(n: Node): Boolean = this.existsDefined {
     case `n` =>
@@ -346,29 +368,58 @@ trait Info {
       case _ => None
     }
   }
+
+  def getAllInfos[T <: Info : ClassTag]: Seq[T] =
+    this match {
+      case t: T => Seq(t)
+      case ConsInfo(head, tail) => head.getAllInfos[T] ++ tail.getAllInfos[T]
+      case _ => Seq.empty
+    }
+
+  def removeUniqueInfo[T <: Info : ClassTag]: Info = this match {
+    case ConsInfo(a, b) => MakeInfoPair(a.removeUniqueInfo[T], b.removeUniqueInfo[T])
+    case _: T => NoInfo
+    case info => info
+  }
 }
 
 /** A default `Info` that is empty. */
 case object NoInfo extends Info {
-  lazy val comment = Nil
-  lazy val isCached = false
+  override val comment = Nil
+  override val isCached = false
+}
+
+case class SourcePNodeInfo(sourcePNode: PNode) extends Info {
+  override val comment = Nil
+  override val isCached = false
+}
+
+case class AnnotationInfo(values: Map[String, Seq[String]]) extends Info {
+  override val isCached = false
+  override val comment = Nil
 }
 
 /** A simple `Info` that contains a list of comments. */
 case class SimpleInfo(comment: Seq[String]) extends Info {
-  lazy val isCached = false
+  override val isCached = false
 }
 
 /** An `Info` instance for labelling a quantifier as auto-triggered. */
 case object AutoTriggered extends Info {
-  lazy val comment = Nil
-  lazy val isCached = false
+  override val comment = Nil
+  override val isCached = false
+}
+
+/** An `Info` for specifying the weight of a quantifier in the SMT encoding. */
+case class WeightedQuantifier(weight: Int) extends Info {
+  override val comment = Nil
+  override val isCached = false
 }
 
 /** An `Info` instance for labelling a pre-verified AST node (e.g., via caching). */
 case object Cached extends Info {
-  lazy val comment = Nil
-  lazy val isCached = true
+  override val comment = Nil
+  override val isCached = true
 }
 
 /** An `Info` instance for labelling a node as synthesized. A synthesized node is one that
@@ -376,14 +427,22 @@ case object Cached extends Info {
   * originate from an AST transformation.
   */
 case object Synthesized extends Info {
-  lazy val comment = Nil
-  lazy val isCached = false
+  override val comment = Nil
+  override val isCached = false
+}
+
+/** An `Info` instance for labelling an AST node which is expected to fail verification.
+ * This is used by Silicon to avoid stopping verification.
+*/
+abstract class FailureExpectedInfo extends Info {
+  override val comment = Nil
+  override val isCached = false
 }
 
 /** An `Info` instance for composing multiple `Info`s together */
 case class ConsInfo(head: Info, tail: Info) extends Info {
-  lazy val comment = head.comment ++ tail.comment
-  lazy val isCached = head.isCached || tail.isCached
+  override val comment = head.comment ++ tail.comment
+  override val isCached = head.isCached || tail.isCached
 }
 
 /** Build a `ConsInfo` instance out of two `Info`s, unless the latter is `NoInfo` (which can be dropped) */

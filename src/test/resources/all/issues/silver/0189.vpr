@@ -1,5 +1,3 @@
-
-//:: IgnoreFile(/silicon/issue/208/)
 function otherDummy(i: Int): Bool
 function thirdDummy(i: Int): Bool
 

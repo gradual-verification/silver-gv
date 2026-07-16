@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field data: Int
 field rds: Int
 
@@ -13,7 +11,7 @@ method test(this: Ref, I: Perm)
   exhale acc(this.data, write)
   assert this.rds >= 0
   //assert I > none   // Uncommenting this makes a program to verify.
-  //:: UnexpectedOutput(assert.failed:assertion.false, /Carbon/issue/73/)
+  //:: UnexpectedOutput(assert.failed:assertion.false, /Carbon/issue/73/) 
   // check Z3 version - this seems to work with some versions
   assert this.rds * I > none
 }

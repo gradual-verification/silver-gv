@@ -1,13 +1,14 @@
-//:: IgnoreFile(/silicon/issue/208/)
 predicate P(self: Ref)
 
-function foo(s: Seq[Ref]): Bool
+function foo(s: Seq[Ref]): Bool 
+	requires forall i:Int, j:Int :: i >= 0 && i < |s| && j >= 0 && j < |s| && i != j ==> s[i] != s[j]
     requires forall i: Int :: { s[i] } 0 <= i && i < |s| ==> P(s[i])
 {
     true
 }
 
 method clientFoo(s: Seq[Ref]) {
+	inhale forall i:Int, j:Int :: i >= 0 && i < |s| && j >= 0 && j < |s| && i != j ==> s[i] != s[j]
     inhale forall i: Int :: { s[i] } 0 <= i && i < |s| ==> P(s[i])
     inhale foo(s)
 }
@@ -28,7 +29,7 @@ predicate otherList(this: Ref)
 // + at least one predicate access involving bound variables
 function someFun(l:Ref) : Int
   requires list(l)&&(acc(l.elem))&&(forall i: Int :: someList(l, i))&&otherList(l)
-{
+{ 
   1+l.elem
 }
 
@@ -49,8 +50,8 @@ predicate list2(this: Ref) {
 function listLength(l1:Ref, l2: Ref, k: Int) : Int
   requires list(l1) && list2(l2)
   ensures  result > 0
-{
+{ 
   (unfolding list(l1) in l1.next == null ? 1 : 1 +listLength(l1.next, l2, k)) +
   (let i == (k) in unfolding someList(l1, i) in listLength(l1, l2, k-1)) +
-  (unfolding list2(l2) in l2.next2 == null ? 1 : 1 +listLength(l1, l2.next2, k))
+  (unfolding list2(l2) in l2.next2 == null ? 1 : 1 +listLength(l1, l2.next2, k)) 
 }

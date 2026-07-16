@@ -7,8 +7,6 @@
  * slow down Z3 significantly).
  */
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field val: Int
 field next: Ref
 

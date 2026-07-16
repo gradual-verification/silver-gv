@@ -5,15 +5,15 @@
 // Copyright (c) 2011-2019 ETH Zurich.
 
 import java.nio.file.Paths
+
 import TestHelpers.MockSilFrontend
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import viper.silver.ast._
 
-class ParseTreeTests extends FunSuite {
-  // tests involve macros ("simple", "simple2", "simpleExp", "simpleArgs", "simpleArgs2", "simpleArgsExp", "simpleMethod", "simpleMethodExp")
+class ParseTreeTests extends AnyFunSuite {
   test("MacroExpansion") {
     val filePrefix = "transformations/Macros/Expansion/"
-    val files = Seq()
+    val files = Seq("simple", "simple2", "simpleExp", "simpleArgs", "simpleArgs2", "simpleArgsExp", "simpleMethod", "simpleMethodExp")
 
     val frontend = new MockSilFrontend
 
@@ -21,18 +21,15 @@ class ParseTreeTests extends FunSuite {
       parseAndCompare(filePrefix + fileName + ".vpr", filePrefix + fileName + "Ref" + ".vpr", frontend))
   }
 
-  // tests involve macros ("simple", "nested", "collision", "collision2", "forall")
-  // tf loopConstruction involves goto
-  test("HygienicMacros") {
+  /*test("HygienicMacros") {
     val filePrefix = "transformations/Macros/Hygienic/"
-    val files = Seq()
+    val files = Seq("simple", "nested", "collision", "collision2", "forall", "loopConstruction")
 
     val frontend = new MockSilFrontend
 
     files foreach (fileName =>
       parseAndCompare(filePrefix + fileName + ".vpr", filePrefix + fileName + "Ref" + ".vpr", frontend))
-  }
-
+  }*/
 
   test("Positions and Paths") {
     val filePrefix = "transformations/Imports/"
@@ -85,10 +82,9 @@ class ParseTreeTests extends FunSuite {
     }
   }
 
-  // tf complex's reffile uses functions
   test("Imports") {
     val filePrefix = "transformations/Imports/"
-    val files = Seq("simple", "cyclic")
+    val files = Seq("simple", /*"complex",*/ "cyclic")
 
     val frontend = new MockSilFrontend
 

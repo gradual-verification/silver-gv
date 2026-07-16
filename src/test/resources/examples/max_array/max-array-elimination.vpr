@@ -5,8 +5,6 @@
  * Problem 1 from http://foveoos2011.cost-ic0701.org/verification-competition
  */
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 define access(a) forall j: Int :: 0 <= j && j < len(a) ==> acc(loc(a, j).val)
 define untouched(a) forall j: Int :: 0 <= j && j < len(a) ==> loc(a, j).val == old(loc(a, j).val)
 define is_max(i, a, u) forall j: Int :: 0 <= j && j < u ==> loc(a, j).val <= loc(a, i).val

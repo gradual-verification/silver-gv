@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field Lock__owner: Ref
 
 field Lock__user: Ref
@@ -14,7 +12,7 @@ predicate LockSet__lockset(diz: Ref, S: Multiset[Ref]) {
 }
 
 predicate Client__inv(diz: Ref, p: Perm) {
-  acc(diz.Client__x, p)
+  p >= none && acc(diz.Client__x, p)
 }
 
 method LockSet__LockSet(current_thread_id: Int) returns (sys__result: Ref)

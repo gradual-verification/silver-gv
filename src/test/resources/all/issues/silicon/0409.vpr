@@ -1,5 +1,3 @@
-
-//:: IgnoreFile(/silicon/issue/208/)
 field f: Int
 
 method test0(xs: Set[Ref], x: Ref) {

@@ -1,5 +1,3 @@
-//:: IgnoreFile(/silicon/issue/208/)
-
 field neighbour: Set[Ref]
 field visited: Bool
 

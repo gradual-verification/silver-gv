@@ -1,22 +1,20 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 domain TYPE {
-
+  
   function class_Object(): TYPE
-
+  
   function class_Thread(): TYPE
-
+  
   function class_Worker(): TYPE
-
+  
   function class_Main(): TYPE
-
+  
   function instanceof(t1: TYPE, t2: TYPE): Bool
-
+  
   function type_of(val: Ref): TYPE
-
+  
   axiom object_top {
     (forall t: TYPE :: instanceof(class_Object(), t))
   }
@@ -26,17 +24,17 @@ field Worker__input: Int
 
 field Worker__output: Int
 
-predicate Thread__is_a_Thread(diz: Ref)
+predicate Thread__is_a_Thread(diz: Ref) 
 
-predicate Thread__instance_of_Thread(diz: Ref)
+predicate Thread__instance_of_Thread(diz: Ref) 
 
-predicate Thread__joinToken(diz: Ref, p: Perm)
+predicate Thread__joinToken(diz: Ref, p: Perm) 
 
-predicate Thread__preFork(diz: Ref, p: Perm)
+predicate Thread__preFork(diz: Ref, p: Perm) 
 
-predicate Thread__postJoin(diz: Ref, p: Perm)
+predicate Thread__postJoin(diz: Ref, p: Perm) 
 
-predicate Thread__joinToken_at_Thread(diz: Ref, p: Perm)
+predicate Thread__joinToken_at_Thread(diz: Ref, p: Perm) 
 
 predicate Thread__preFork_at_Thread(diz: Ref, p: Perm) {
   true
@@ -46,25 +44,25 @@ predicate Thread__postJoin_at_Thread(diz: Ref, p: Perm) {
   true
 }
 
-predicate Worker__is_a_Worker(diz: Ref)
+predicate Worker__is_a_Worker(diz: Ref) 
 
-predicate Worker__instance_of_Worker(diz: Ref)
+predicate Worker__instance_of_Worker(diz: Ref) 
 
-predicate Worker__is_a_Thread(diz: Ref)
+predicate Worker__is_a_Thread(diz: Ref) 
 
-predicate Worker__instance_of_Thread(diz: Ref)
+predicate Worker__instance_of_Thread(diz: Ref) 
 
-predicate Worker__joinToken(diz: Ref, p: Perm)
+predicate Worker__joinToken(diz: Ref, p: Perm) 
 
 predicate Worker__joinToken_at_Worker(diz: Ref, p: Perm) {
   acc(Worker__joinToken_at_Thread(diz, p), write)
 }
 
-predicate Worker__preFork(diz: Ref, p: Perm)
+predicate Worker__preFork(diz: Ref, p: Perm) 
 
-predicate Worker__postJoin(diz: Ref, p: Perm)
+predicate Worker__postJoin(diz: Ref, p: Perm) 
 
-predicate Worker__joinToken_at_Thread(diz: Ref, p: Perm)
+predicate Worker__joinToken_at_Thread(diz: Ref, p: Perm) 
 
 predicate Worker__preFork_at_Thread(diz: Ref, p: Perm) {
   true
@@ -75,11 +73,11 @@ predicate Worker__postJoin_at_Thread(diz: Ref, p: Perm) {
 }
 
 predicate Worker__preFork_at_Worker(diz: Ref, p: Perm) {
-  acc(Worker__preFork_at_Thread(diz, p), write) && (acc(diz.Worker__input, wildcard) && (p != none) && acc(diz.Worker__output, p))
+  p >= none && acc(Worker__preFork_at_Thread(diz, p), write) && (acc(diz.Worker__input, wildcard) && (p != none) && acc(diz.Worker__output, p))
 }
 
 predicate Worker__postJoin_at_Worker(diz: Ref, p: Perm) {
-  acc(Worker__postJoin_at_Thread(diz, p), write) && (acc(diz.Worker__input, wildcard) && (p != none) && (acc(diz.Worker__output, p) && (diz.Worker__output == diz.Worker__input + 1)))
+  p >= none && acc(Worker__postJoin_at_Thread(diz, p), write) && (acc(diz.Worker__input, wildcard) && (p != none) && (acc(diz.Worker__output, p) && (diz.Worker__output == diz.Worker__input + 1)))
 }
 
 method Thread__run(diz: Ref, current_thread_id: Int) returns (sys__thrown: Ref)

@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 method client(arr: Ref){
 	test01(arr)
 }
@@ -30,17 +28,17 @@ method test03(arr: Ref)
 //  inhale 0 < |xs|
 //  assert forall p: Int :: true ==> acc(xs[0].val, none)
 //}
-/*
+
 method test04(arr: Ref) {
  inhale acc(arr.val, none)
- /:: ExpectedOutput(assert.failed:assertion.false)
+ //:: ExpectedOutput(assert.failed:assertion.false)
  assert arr != null
 }
 
 method test05(arr: Ref) {
  exhale acc(arr.val, none)
 }
-*/
+
 method test06(arr: Ref) {
  assert perm(arr.val) == none
 }
@@ -52,7 +50,7 @@ method test07(arr: Ref) {
 /* Encoding of arrays */
 
 field val: Int
-/*
+
 domain IArray {
  function loc(a: Ref, i: Int): Ref
  function len(a: Ref): Int
@@ -68,4 +66,3 @@ domain IArray {
    forall a: Ref :: len(a) >= 0
  }
 }
-*/

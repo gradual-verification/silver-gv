@@ -1,7 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: ExpectedOutput(parser.error)
 domain Process {
   
   function p_empty(): Process
@@ -17,12 +16,12 @@ domain Process {
   function p_dual(n: Int, m: Int): Process
   
   axiom empty_2R {
-    // ExpectedOutput(consistency.error) // revive this annotation when parser error not expected in this test file - Jenna
+    //:: ExpectedOutput(consistency.error)
     (forall p: Process, q: Process :: { p_incr() } p_seq(p, p_empty()) == p)
   }
   
   axiom dual_def {
-    // ExpectedOutput(consistency.error) // revive this annotation when parser error not expected in this test file - Jenna
+    //:: ExpectedOutput(consistency.error)
     (forall n: Int, m: Int, k: Int :: { p_dual(n, m) } p_merge(p_single(n), p_single(m)) == p_dual(n, m))
   }
 }

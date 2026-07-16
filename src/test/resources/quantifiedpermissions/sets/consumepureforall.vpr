@@ -54,7 +54,7 @@ ensures (forall t : Ref :: t in S ==> ((t.f) > (2*a)))
 {
     b.f := 2*a+1
 }
-/*
+
 method m7(S: Set[Ref], b:Ref, a:Int)
 requires (forall s: Ref :: s in S ==> acc(s.f))
 requires S == Set(b)
@@ -62,7 +62,7 @@ requires b.f == a
 ensures (forall r : Ref :: r in S ==> acc(r.f))
 {
     b.f := 2*a
-    /:: ExpectedOutput(exhale.failed:assertion.false)
+    //:: ExpectedOutput(exhale.failed:assertion.false)
     exhale (forall t : Ref :: t in S ==> (t.f) > (2*a))
 }
 
@@ -72,7 +72,7 @@ requires b in S
 {
     assume(b.f > 0)
 }
-*/
+
 method m8(S: Set[Ref], b: Ref, a :Int, c: Ref)
   requires forall s: Ref :: s in S ==> acc(s.f)
   requires forall s: Ref :: s in S ==> s.f == a
@@ -109,3 +109,4 @@ ensures (forall t : Ref :: t in S ==> (t.f > a))
     b.f := 2*a+1
     c.f := a+1
 }
+

@@ -2,19 +2,20 @@
 // http://creativecommons.org/publicdomain/zero/1.0/
 
 
+//:: IgnoreFile(/silicon/issue/233/)
 
 field g: Int
-/*
+
 domain Bag[T]
 {
-    function singleton(t:T) : Bag[T]
+/*    function singleton(t:T) : Bag[T]
 
     function size(b:Bag[T]) : Int
 
     function flatten(b:Bag[Bag[T]]):Bag[T]
 
     axiom singletonSize { forall t:T :: size(singleton(t))==1 }
-  
+  */
     function df(x:Int) : Int
     function dR() : Ref
 //    axiom ax {df(dR().g)==0}
@@ -35,10 +36,11 @@ method m(this : Ref)
     y := f(this.g)
     y := df(this.g)
 }
-*/
-  //:: ExpectedOutput(typechecker.error)
+
+//:: ExpectedOutput(typechecker.error)
 method m54(this:Ref)  returns (this:Ref)
-{
+{    
+    //:: ExpectedOutput(typechecker.error)
     this := this
 }
 
@@ -66,9 +68,9 @@ domain D4[S]
 {
     function fD4(t:S) : D3[S]
 }
+  
 
-
-
+  
 domain D {
 //    function f(x:D): D //TODO
     function f0(x:D): D //TODO

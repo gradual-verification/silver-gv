@@ -20,8 +20,7 @@ function fun(x: Ref): Int
   ensures result > 0
 { unfolding acc(P(x), wildcard) in x.g }
 
-method test02(x: Ref)
-  requires acc(P(x))
-{
+method test02(x: Ref) {
+  inhale acc(P(x))
   assert let y == (fun(x)) in y*y+y > 0
 }

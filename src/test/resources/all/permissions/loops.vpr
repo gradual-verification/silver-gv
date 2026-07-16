@@ -47,3 +47,14 @@ method test4(x: Ref)
   {
   }
 }
+
+method test5(x: Ref)
+  requires acc(x.f)
+{
+  while (x.f < 3)
+    //:: ExpectedOutput(invariant.not.preserved:insufficient.permission)
+    invariant acc(x.f)
+  {
+    exhale acc(x.f)
+  }
+}

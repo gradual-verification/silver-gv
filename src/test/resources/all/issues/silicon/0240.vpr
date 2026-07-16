@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
  field next: Ref
  field data: Int
 
@@ -56,7 +54,7 @@ method test04a(this: Ref)
 method test04b(this: Ref)
   requires acc(bla(this), 1/2)
 {
-  //:: ExpectedOutput(application.precondition:insufficient.permission)
+
   assert unfolding acc(bla(this), 1/2) in foo(this)
 }
 
@@ -100,6 +98,6 @@ method test04a_qp(xs: Set[Ref])
 method test04b_qp(xs: Set[Ref])
   requires acc(bla_qp(xs), 1/2)
 {
-  //:: ExpectedOutput(application.precondition:insufficient.permission)
+
   assert unfolding acc(bla_qp(xs), 1/2) in foo_qp(xs)
 }

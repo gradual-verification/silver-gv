@@ -1,5 +1,3 @@
-
-//:: IgnoreFile(/silicon/issue/208/)
 predicate accessible_withdraw(msg_sender: Int, amount: Int, parameter: Int)
 
 method test1(){

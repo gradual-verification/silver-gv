@@ -3,10 +3,9 @@
 
 field val: Int
 
-//:: ExpectedOutput(parser.error)
 domain Foo {
   axiom bar {
-    // ExpectedOutput(consistency.error) // revive this annotation when parser error not expected in this test file - Jenna
+    //:: ExpectedOutput(consistency.error)
     forall r: Ref :: r.val != 0
   }
 }

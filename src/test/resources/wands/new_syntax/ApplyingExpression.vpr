@@ -1,9 +1,8 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
+//:: IgnoreFile(/silver/issue/478/)
 
-//:: IgnoreFile(/carbon/issue/244/)
 field f: Int
 
 predicate Cell(x: Ref) {
@@ -11,6 +10,7 @@ predicate Cell(x: Ref) {
 }
 
 function get(x: Ref): Int
+//:: ExpectedOutput(consistency.error)
 requires true --* acc(x.f) {
     applying (true --* acc(x.f)) in x.f
 }

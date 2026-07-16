@@ -12,8 +12,7 @@ method Test02test04$(this: Ref)
   requires this != null
   requires acc(V(this), write)
   ensures acc(V(this), write)
-  // ExpectedOutput(postcondition.violated:insufficient.permission) // revive this annotation when parser error not expected in this test file - Jenna
-  //:: ExpectedOutput(parser.error)
+  //:: ExpectedOutput(postcondition.violated:insufficient.permission)
   ensures acc(this.f, wildcard)
 {
   unfold acc(V(this), 20 / 100)

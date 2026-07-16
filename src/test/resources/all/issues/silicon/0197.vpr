@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field val: Int
 field next: Ref
 
@@ -17,6 +15,6 @@ method test04(x: Ref) {
       unfold acc(LLInf(x, 0))
       unfold acc(LLInf(x.next, 1))
   }
-
+        
   assert acc(LLInf(x, 0)) --* acc(x.next) && acc(x.next.val) && x.next.val == 1
 }

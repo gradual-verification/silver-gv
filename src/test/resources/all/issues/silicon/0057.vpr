@@ -13,7 +13,6 @@ method m(o:Ref)
     i := i+1
     o.f := 5
   }
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
-  //:: ExpectedOutput(parser.error)
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert (o.f == old(o.f))
 }

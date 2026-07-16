@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 function reqIGt0(i: Int): Int
 	requires i >= 0
 { i }
@@ -14,7 +12,7 @@ method succeedsRange10(a: Int)
 }
 
 method succeedsExplicit10(a: Int)
-{
+{ 
   assert forall i: Int :: (i in Seq(2,4,6,8)) ==> (reqIGt0(i*i) > i);
   assert forall i: Int :: (i in Seq(-2,2,4,6,8)) ==> (reqIGt0(i*i) > i);
 }

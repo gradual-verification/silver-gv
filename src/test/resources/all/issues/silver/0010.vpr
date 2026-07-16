@@ -6,7 +6,6 @@ field b: Bool
 
 predicate P(this: Ref) {
      acc(this.b, write)
-  //:: ExpectedOutput(parser.error)
   && (this.b ==> acc(this.f, write))
 }
 

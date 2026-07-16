@@ -15,11 +15,10 @@ predicate P3(this: Ref) {
 
 method noPredicates()
 {
-  //:: ExpectedOutput(parser.error)
   assert forperm r: Ref [P1(r)] :: false
   assert forperm r: Ref [P2(r)] :: false
 }
-/*
+
 method noPredicates2()
 {
   var ref: Ref
@@ -32,7 +31,7 @@ method permOnlyOnePredicate1()
 {
   var ref: Ref
   inhale acc(P1(ref))
-  /:: ExpectedOutput(assert.failed:assertion.false)
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert forperm r: Ref [P1(r)] :: false
 }
 
@@ -41,7 +40,7 @@ method permOnlyOnePredicate2()
   var ref: Ref
   inhale acc(P1(ref))
   assert forperm r: Ref [P2(r)] :: false
-  /:: ExpectedOutput(assert.failed:assertion.false)
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert forperm r: Ref [P1(r)] :: false
 }
 
@@ -53,4 +52,3 @@ method permCheck()
   assert forperm r: Ref [P1(r)] :: false
   assert forperm r: Ref [P2(r)] :: false
 }
-*/

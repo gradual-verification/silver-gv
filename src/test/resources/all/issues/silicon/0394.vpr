@@ -1,4 +1,3 @@
-//:: ExpectedOutput(parser.error)
 domain test10 {
   function foo(i:Int) : Multiset[Int]
   function bar(a:Int, b:Int) : Bool
@@ -13,6 +12,6 @@ method test11(a:Int, b:Int, c:Int)
 {
   assert bar(a,c) // used to fail in Carbon using the isGoodMultiset idea on top of maps
   assert bar(b,c)
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert bar(a,b)
 }

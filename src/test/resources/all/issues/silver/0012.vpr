@@ -5,7 +5,6 @@ field root : Ref
 
 predicate valid1(this: Ref) {
      acc(this.root,write)
-  //:: ExpectedOutput(parser.error)
   && acc((this.root).root,1/2)
 }
 

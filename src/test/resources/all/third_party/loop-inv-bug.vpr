@@ -12,7 +12,6 @@ method test05(n: Int) {
   var i: Int
   var res: Int
 
-  //:: ExpectedOutput(parser.error)
   assume i == n
   assume res == i * n // Worked
   assert res == n * n // Failed

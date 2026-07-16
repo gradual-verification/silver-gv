@@ -4,6 +4,5 @@
 field f: Int
 
 method test(x: Ref)
-    //:: ExpectedOutput(parser.error)
 	requires acc(x.f, none)
 {}

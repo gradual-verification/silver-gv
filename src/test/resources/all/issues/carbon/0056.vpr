@@ -2,8 +2,6 @@
 // http://creativecommons.org/publicdomain/zero/1.0/
 
 // chaliceSuite/examples/dining-philosophers.chalice
-
-//:: IgnoreFile(/silicon/issue/208/)
 domain GlobalKPermission {
 
   unique function globalK$(): Perm
@@ -117,3 +115,4 @@ method Philosopherrun$(this$_2: Ref, k$_1: Perm)
     fold acc(Philosophervalid$(this$_2), write)
   }
 }
+

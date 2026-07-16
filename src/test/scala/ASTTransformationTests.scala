@@ -6,12 +6,13 @@
 
 package viper.silver
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import viper.silver.ast.utility.rewriter.StrategyBuilder
 import viper.silver.frontend._
 import viper.silver.verifier.Verifier
+import viper.silver.ast.NoPosition
 
-class ASTTransformationTests extends FunSuite {
+class ASTTransformationTests extends AnyFunSuite {
   object frontend extends SilFrontend {
     def configureVerifier(args: Seq[String]): SilFrontendConfig = ???
     def createVerifier(fullCmd: String): Verifier = ???
@@ -50,15 +51,16 @@ class ASTTransformationTests extends FunSuite {
 
     import viper.silver.parser._
 
-    val binExp1 = PBinExp(PIntLit(1), "==", PIntLit(1))
-    val binExp2 = PBinExp(PIntLit(3), "==", PIntLit(3))
+    val p = (NoPosition, NoPosition)
+    val binExp1 = PBinExp(PIntLit(1)(p), PReserved.implied(PSymOp.EqEq), PIntLit(1)(p))(p)
+    val binExp2 = PBinExp(PIntLit(3)(p), PReserved.implied(PSymOp.EqEq), PIntLit(3)(p))(p)
 
     case class Context(increment: Int)
 
     val transformed = StrategyBuilder.RewriteNodeAndContext[PNode, Context](
       {
         case (PIntLit(i), ctx: Context) =>
-          (PIntLit(i + ctx.increment), ctx.copy(ctx.increment + 1))
+          (PIntLit(i + ctx.increment)(p), ctx.copy(ctx.increment + 1))
       }, Context(2)).execute[PNode](binExp1)
 
     assert(transformed === binExp2)
@@ -79,20 +81,21 @@ class ASTTransformationTests extends FunSuite {
 
      import viper.silver.parser._
 
-     val binExp1 = PBinExp(PIntLit(1), "==", PIntLit(1))
-     val method1 = PMethod(PIdnDef("m"), Seq(), Seq(), Seq(), Seq(), Some(PSeqn(Seq(PAssert(binExp1)))))
-     val original = PProgram(Seq(), Seq(), Seq(), Seq(), Seq(), Seq(), Seq(method1), Seq(), Seq())
+     val p = (NoPosition, NoPosition)
+     val binExp1 = PBinExp(PIntLit(1)(p), PReserved.implied(PSymOp.EqEq), PIntLit(1)(p))(p)
+     val method1 = PMethod(Seq(), PReserved.implied(PKw.Method), PIdnDef("m")(p), PGrouped.impliedParen(PDelimited.empty), None, PDelimited.empty, PDelimited.empty, Some(PSeqn(PDelimited.impliedBlock(Seq(PAssert(PReserved.implied(PKw.Assert), binExp1)(p))))(p)))(p)
+     val original = PProgram(Nil, Seq(method1))(p, Seq())
 
-     val binExp2 = PBinExp(PIntLit(3), "==", PIntLit(3))
-     val method2 = PMethod(PIdnDef("m"), Seq(), Seq(), Seq(), Seq(), Some(PSeqn(Seq(PAssert(binExp2)))))
-     val target = PProgram(Seq(), Seq(), Seq(), Seq(), Seq(), Seq(), Seq(method2),  Seq(), Seq())
+     val binExp2 = PBinExp(PIntLit(3)(p), PReserved.implied(PSymOp.EqEq), PIntLit(3)(p))(p)
+     val method2 = PMethod(Seq(), PReserved.implied(PKw.Method), PIdnDef("m")(p), PGrouped.impliedParen(PDelimited.empty), None, PDelimited.empty, PDelimited.empty, Some(PSeqn(PDelimited.impliedBlock(Seq(PAssert(PReserved.implied(PKw.Assert), binExp2)(p))))(p)))(p)
+     val target = PProgram(Nil, Seq(method2))(p, Seq())
 
      case class Context(increment: Int)
 
      val transformed = StrategyBuilder.RewriteNodeAndContext[PNode, Context](
        {
          case (PIntLit(i), ctx: Context) =>
-           (PIntLit(i + ctx.increment), ctx.copy(ctx.increment + 1)) // Notice that this new context won't
+           (PIntLit(i + ctx.increment)(p), ctx.copy(ctx.increment + 1)) // Notice that this new context won't
        }, Context(2)).execute[PNode](original)                       // affect its sibling literal node
 
      assert(transformed === target)
@@ -115,20 +118,23 @@ class ASTTransformationTests extends FunSuite {
 
     import viper.silver.parser._
 
-    val function = PFunction(PIdnDef("f"), Seq(PFormalArgDecl(PIdnDef("x"), TypeHelper.Int), PFormalArgDecl(PIdnDef("y"), TypeHelper.Int)), TypeHelper.Int, Seq(), Seq(), None)
-    val assume1 = PAssume(PBinExp(PCall(PIdnUse("f"), Seq(PIntLit(1), PIntLit(1))), "==", PCall(PIdnUse("f"), Seq(PIntLit(1), PCall(PIdnUse("f"), Seq(PIntLit(1), PCall(PIdnUse("f"), Seq(PIntLit(1), PIntLit(1)))))))))
-    val method1 = PMethod(PIdnDef("m"), Seq(), Seq(), Seq(), Seq(), Some(PSeqn(Seq(assume1))))
-    val original = PProgram(Seq(), Seq(), Seq(), Seq(), Seq(function), Seq(), Seq(method1),  Seq(), Seq())
+    def commaParen[T <: PNode](args: Seq[T]) = PDelimited.impliedParenComma(args)
 
-    val assume2 = PAssume(PBinExp(PCall(PIdnUse("f"), Seq(PIntLit(2), PIntLit(1))), "==", PCall(PIdnUse("f"), Seq(PIntLit(2), PCall(PIdnUse("f"), Seq(PIntLit(3), PCall(PIdnUse("f"), Seq(PIntLit(4), PIntLit(1)))))))))
-    val method2 = PMethod(PIdnDef("m"), Seq(), Seq(), Seq(), Seq(), Some(PSeqn(Seq(assume2))))
-    val target = PProgram(Seq(), Seq(), Seq(), Seq(), Seq(function), Seq(), Seq(method2),  Seq(), Seq())
+    val p = (NoPosition, NoPosition)
+    val function = PFunction(Seq(), PReserved.implied(PKw.Function), PIdnDef("f")(p), commaParen(Seq(PFormalArgDecl(PIdnDef("x")(p), PReserved.implied(PSym.Colon), TypeHelper.Int)(p), PFormalArgDecl(PIdnDef("y")(p), PReserved.implied(PSym.Colon), TypeHelper.Int)(p))), PReserved.implied(PSym.Colon), TypeHelper.Int, PDelimited.empty, PDelimited.empty, None)(p)
+    val assume1 = PAssume(PReserved.implied(PKw.Assume), PBinExp(PCall(PIdnRef("f")(p), commaParen(Seq(PIntLit(1)(p), PIntLit(1)(p))), None)(p), PReserved.implied(PSymOp.EqEq), PCall(PIdnRef("f")(p), commaParen(Seq(PIntLit(1)(p), PCall(PIdnRef("f")(p), commaParen(Seq(PIntLit(1)(p), PCall(PIdnRef("f")(p), commaParen(Seq(PIntLit(1)(p), PIntLit(1)(p))), None)(p))), None)(p))), None)(p))(p))(p)
+    val method1 = PMethod(Seq(), PReserved.implied(PKw.Method), PIdnDef("m")(p), PGrouped.impliedParen(PDelimited.empty), None, PDelimited.empty, PDelimited.empty, Some(PSeqn(PDelimited.impliedBlock(Seq(assume1)))(p)))(p)
+    val original = PProgram(Nil, Seq(function, method1))(p, Seq())
+
+    val assume2 = PAssume(PReserved.implied(PKw.Assume), PBinExp(PCall(PIdnRef("f")(p), commaParen(Seq(PIntLit(2)(p), PIntLit(1)(p))), None)(p), PReserved.implied(PSymOp.EqEq), PCall(PIdnRef("f")(p), commaParen(Seq(PIntLit(2)(p), PCall(PIdnRef("f")(p), commaParen(Seq(PIntLit(3)(p), PCall(PIdnRef("f")(p), commaParen(Seq(PIntLit(4)(p), PIntLit(1)(p))), None)(p))), None)(p))), None)(p))(p))(p)
+    val method2 = PMethod(Seq(), PReserved.implied(PKw.Method), PIdnDef("m")(p), PGrouped.impliedParen(PDelimited.empty), None, PDelimited.empty, PDelimited.empty, Some(PSeqn(PDelimited.impliedBlock(Seq(assume2)))(p)))(p)
+    val target = PProgram(Nil, Seq(function, method2))(p, Seq())
 
     case class Context(increment: Int)
 
     val transformed = StrategyBuilder.RewriteNodeAndContext[PNode, Context]({
-      case (PCall(fname, PIntLit(i) :: tail, retType), ctx) =>
-        (PCall(fname, PIntLit(i + ctx.increment) :: tail, retType), ctx.copy(ctx.increment + 1))
+      case (PCall(fname, args, retType), ctx) if args.inner.length >= 1 && args.inner.head.isInstanceOf[PIntLit] =>
+        (PCall(fname, args.update(PIntLit(args.inner.head.asInstanceOf[PIntLit].i + ctx.increment)(p) +: args.inner.tail), retType)(p), ctx.copy(ctx.increment + 1))
     }, Context(1)).execute[PNode](original)
 
     assert(transformed === target)
@@ -140,9 +146,10 @@ class ASTTransformationTests extends FunSuite {
 
     import viper.silver.parser._
 
-    val requires = PForall(Seq(PFormalArgDecl(PIdnDef("y"), TypeHelper.Int)), Seq(), PBinExp(PIdnUse("y"), "==", PIdnUse("y")))
-    val function = PFunction(PIdnDef("f"), Seq(PFormalArgDecl(PIdnDef("x"), TypeHelper.Ref)), TypeHelper.Bool, Seq(requires), Seq(), None)
-    val program = PProgram(Seq(), Seq(), Seq(), Seq(), Seq(function), Seq(), Seq(), Seq(), Seq())
+    val p = (NoPosition, NoPosition)
+    val requires = PForall(PReserved.implied(PKw.Forall), PDelimited.implied(Seq(PLogicalVarDecl(PIdnDef("y")(p), PReserved.implied(PSym.Colon), TypeHelper.Int)(p)), PReserved.implied(PSym.Comma)), PReserved.implied(PSym.ColonColon), Seq(), PBinExp(PIdnUseExp("y")(p), PReserved.implied(PSymOp.EqEq), PIdnUseExp("y")(p))(p))(p)
+    val function = PFunction(Seq(), PReserved.implied(PKw.Function), PIdnDef("f")(p), PDelimited.impliedParenComma(Seq(PFormalArgDecl(PIdnDef("x")(p), PReserved.implied(PSym.Colon), TypeHelper.Ref)(p))), PReserved.implied(PSym.Colon), TypeHelper.Bool, PDelimited.implied(Seq(PSpecification(PReserved.implied(PKw.Requires), requires)(p)), None), PDelimited.empty, None)(p)
+    val program = PProgram(Nil, Seq(function))(p, Seq())
 
     case class Context()
 

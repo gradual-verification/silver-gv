@@ -5,7 +5,6 @@ method Ref__types(diz: Ref, current_thread_id: Int)
   requires diz != null
   requires current_thread_id >= 0
 {
-  //:: ExpectedOutput(parser.error)
   var L: Seq[Int]
   var S: Set[Int]
   var B: Multiset[Int]
@@ -18,7 +17,7 @@ method Ref__types(diz: Ref, current_thread_id: Int)
   assert B == Multiset(1, 1, 2, 3)
   assert (1 in B) == 2
 }
-/*
+
 method Ref__Ref(current_thread_id: Int) returns (sys__result: Ref)
   requires current_thread_id >= 0
   ensures sys__result != null
@@ -28,4 +27,4 @@ method Ref__Ref(current_thread_id: Int) returns (sys__result: Ref)
   sys__result := diz
   assert sys__result != null
   inhale false
-}*/
+}

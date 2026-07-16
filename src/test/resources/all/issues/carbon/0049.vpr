@@ -2,7 +2,6 @@
 // http://creativecommons.org/publicdomain/zero/1.0/
 
 // oldC2SCases/predicates_2.chalice
-//:: ExpectedOutput(parser.error)
 domain GlobalKPermission {
 
   unique function globalK$(): Perm
@@ -35,6 +34,6 @@ method Cellb3$(this: Ref, k$: Perm)
   unfold acc(Cellread1$(this), write)
   fold acc(Cellread2$(this), write)
   fold acc(Cellread2$(this), write)
-  // ExpectedOutput(fold.failed:insufficient.permission) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(fold.failed:insufficient.permission)
   fold acc(Cellwrite1$(this), write)
 }

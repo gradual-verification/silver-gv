@@ -1,7 +1,9 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
+
+//:: IgnoreFile(/silicon/issue/233/)
+// Issue: function, unfolding keyword
 
 field data: Seq[Int];  // the storage
 field first: Int;      // index of the first element in the queue
@@ -136,3 +138,4 @@ method Head(this: Ref) returns (x: Int)
     h := Pop(b);  assert h == z;
     assert Capacity(b) == 2;
   }
+

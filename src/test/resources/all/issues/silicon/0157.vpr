@@ -7,29 +7,28 @@ field g: Bool /* Must be a finite domain, Int didn't trigger the bug */
 method test04(x: Ref)
   requires acc(x.f) && x.f != null && acc(x.f.g) && x.f.g
 {
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert false /* Held previously */
 }
 
 method test01(x: Ref)
   requires acc(x.f) && x.f != null
 {
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert false
 }
 
 method test02(x: Ref)
-  //:: ExpectedOutput(parser.error)
   requires acc(x.f, 1/2) && x.f != null && acc(x.f, 1/2)
 {
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert false
 }
 
 method test03(x: Ref)
   requires acc(x.f) && x.f != null && acc(x.f.g)
 {
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert false
 }
 
@@ -38,7 +37,7 @@ method test05(x: Ref)
 {
   assert x.f != null
 
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert false
 }
 
@@ -46,7 +45,7 @@ method test06(x: Ref)
   requires acc(x.f) && x.f != null
   requires acc(x.f.g) && x.f.g
 {
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert false
 }
 
@@ -59,7 +58,7 @@ field joinable: Bool
 method TestBug(this: Ref, k$_1: Perm)
   requires acc(this.Testtk, write) && (this.Testtk != null) && acc(this.Testtk.joinable, write) && this.Testtk.joinable
 {
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert false
 }
 
@@ -67,6 +66,6 @@ method TestBug1(this: Ref, k$_1: Perm)
   requires acc(this.Testtk, write) && (this.Testtk != null)
   requires acc(this.Testtk.joinable, write) && this.Testtk.joinable
 {
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert false
 }

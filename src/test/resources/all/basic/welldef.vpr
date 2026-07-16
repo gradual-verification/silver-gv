@@ -1,8 +1,13 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
+//:: IgnoreFile(/silicon/issue/233/)
 
 field f: Int
+
+domain Test {
+    function func(a: Int): Int
+}
 
 method t1_a(this: Ref)
 {
@@ -11,11 +16,25 @@ method t1_a(this: Ref)
 }
 
 method t1_b(this: Ref)
-  requires this != null
 {
+    assume this != null
     //:: ExpectedOutput(assignment.failed:insufficient.permission)
     var i: Int := this.f
 }
+
+method t2_a(this: Ref)
+{
+    //:: ExpectedOutput(assignment.failed:insufficient.permission)
+    var i: Int := func(this.f)
+}
+
+method t2_b(this: Ref)
+{
+    assume this != null
+    //:: ExpectedOutput(assignment.failed:insufficient.permission)
+    var i: Int := func(this.f)
+}
+
 method t4_a(this: Ref)
 {
     //:: ExpectedOutput(assignment.failed:insufficient.permission)
@@ -23,8 +42,8 @@ method t4_a(this: Ref)
 }
 
 method t4_b(this: Ref)
-  requires this != null
 {
+    assume this != null
     //:: ExpectedOutput(assignment.failed:insufficient.permission)
     this.f := 1
 }

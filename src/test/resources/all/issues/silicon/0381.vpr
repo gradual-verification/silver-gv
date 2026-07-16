@@ -1,5 +1,3 @@
-
-//:: IgnoreFile(/silicon/issue/208/)
 function loc(a: Ref, i: Int): Ref
 
 field val: Int
@@ -10,4 +8,5 @@ method foo(s: Ref)
   requires forall i : Int :: { loc(s, i).val } P(s, i)
 
 method foo1(s: Ref)
+//:: ExpectedOutput(not.wellformed:qp.not.injective)
   requires forall i : Int :: { P(s, i) } acc(loc(s, i).val)

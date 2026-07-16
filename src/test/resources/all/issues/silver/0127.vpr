@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 predicate F1(r: Ref) {true}
 
 function F2(r: Ref) : Bool {true}
@@ -20,17 +18,17 @@ predicate idp(r: Ref) {true}
 
 method main1(r: Ref)
 {
-        inhale F1(r)
+        inhale F1(r) 
 }
 
 method main2(r: Ref)
 {
-        inhale F2(r)
+        inhale F2(r) 
 }
 
 method main3(r: Ref)
 {
-        inhale acc(F1(r))
+        inhale acc(F1(r)) 
 }
 
 method main4(r: Ref)
@@ -54,5 +52,6 @@ method main6(r: Ref)
 method main(r: Ref)
 {
         var tmp : Bool
-        tmp := F3(idf(r))
+        tmp := F3(idf(r)) 
 }
+

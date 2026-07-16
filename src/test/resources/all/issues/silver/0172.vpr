@@ -2,7 +2,6 @@
 // http://creativecommons.org/publicdomain/zero/1.0/
 
 field somerel: Bool
-//:: ExpectedOutput(parser.error)
 field AcqInvariants: Set[Int]
 
 define SomeRel(x)

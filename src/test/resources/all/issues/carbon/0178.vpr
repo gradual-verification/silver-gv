@@ -3,7 +3,6 @@
 
 field data: Ref
 
-//:: ExpectedOutput(parser.error)
 predicate Node__isolated(ref: Ref, wset: Set[Ref]) {
     (forall r: Ref :: r in wset ==> acc(r.data)) &&
     (forall r: Ref :: r in wset ==> acc(Node__isolated(r, wset)))

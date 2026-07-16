@@ -1,5 +1,3 @@
-
-//:: IgnoreFile(/silicon/issue/208/)
 field f$m2: Ref
 
 field f$m5: Ref

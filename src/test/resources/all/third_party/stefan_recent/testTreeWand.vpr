@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 //:: IgnoreFile(/Carbon/issue/253/)
 field Wand_state_contains_for_state_contains__lemma: Int
 
@@ -80,7 +78,7 @@ function Tree__tolist(t: Ref): Seq[Int]
 
 function Tree__sorted_list(s: Seq[Int]): Bool
 {
-  (forall i: Int, j:Int :: {s[i],s[j]}
+  (forall i: Int, j:Int :: {s[i],s[j]} 
     (0 <= i) && i < j && (j < |s|) ==> (s[i] <= s[j]))
 }
 

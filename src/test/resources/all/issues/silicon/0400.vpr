@@ -8,7 +8,6 @@
  */
 
 method test_take_01() {
-  //:: ExpectedOutput(parser.error)
   var a: Seq[Int]
   a := Seq(1, 4, 5, 7, 8)
   assert a[..0] == Seq()
@@ -80,7 +79,7 @@ method test_take_02() {
   var e2: Int; assume 6 < e2
   assert a[..e2] == a
 
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert false
 }
 
@@ -139,7 +138,7 @@ method test_drop_length_02() {
   var e2: Int; assume 6 < e2
   assert |a[e2..]| == 0
 
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert false
 }
 

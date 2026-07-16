@@ -31,20 +31,20 @@ object Nodes {
         domains ++ fields ++ functions ++ predicates ++ methods ++ extensions
       case m: Member =>
         m match {
-          case Field(name, typ) => Nil
-          case Function(name, formalArgs, typ, pres, posts, body) =>
+          case Field(_, _) => Nil
+          case Function(_, formalArgs, _, pres, posts, body) =>
             formalArgs ++ pres ++ posts ++ body
-          case Method(name, formalArgs, formalReturns, pres, posts, body) =>
+          case Method(_, formalArgs, formalReturns, pres, posts, body) =>
             formalArgs ++ formalReturns ++ pres ++ posts ++ body.toSeq
-          case Predicate(name, formalArg, body) => formalArg ++ body.toSeq
-          case Domain(name, functions, axioms, typVars) =>
+          case Predicate(_, formalArg, body) => formalArg ++ body.toSeq
+          case Domain(_, functions, axioms, typVars, _) =>
             functions ++ axioms ++ typVars
           case t: ExtensionMember => t.extensionSubnodes
         }
       case dm: DomainMember =>
         dm match {
           case da: DomainAxiom => Seq(da.exp)
-          case DomainFunc(_, formalArgs, _, _) => formalArgs
+          case DomainFunc(_, formalArgs, _, _, _) => formalArgs
         }
       case s: Stmt =>
         s match {
@@ -59,27 +59,31 @@ object Nodes {
           case Exhale(e) => Seq(e)
           case Assert(e) => Seq(e)
           case Assume(e) => Seq(e)
-          case MethodCall(mname, args, targets) => args ++ targets
+          case MethodCall(_, args, targets) => args ++ targets
           case Seqn(ss, scopedDecls) => ss ++ scopedDecls.collect {case l: LocalVarDecl => l} //skip labels because they are already part of ss
           case While(cond, invs, body) => Seq(cond) ++ invs ++ Seq(body)
           case If(cond, thn, els) => Seq(cond, thn, els)
-          case Label(name, invs) => invs
-          case Goto(target) => Nil
+          case Label(_, invs) => invs
+          case Goto(_) => Nil
           case LocalVarDeclStmt(decl) => Seq(decl)
+          case Quasihavoc(lhs, e) => lhs.toSeq :+ e
+          case Quasihavocall(vars, lhs, e) => vars ++ lhs.toSeq :+ e
           case e: ExtensionStmt => e.extensionSubnodes
         }
-      case vd: LocalVarDecl => Nil
+      case _: LocalVarDecl => Nil
+      case _: UnnamedLocalVarDecl => Nil
       case e: Exp =>
         // Note: If you have to update this pattern match to make it exhaustive, it
         // might also be necessary to update the PrettyPrinter.toParenDoc method.
         e match {
           case _: Literal => Nil
           case _: AbstractLocalVar => Nil
-          case FieldAccess(rcv, field) => Seq(rcv)
+          case FieldAccess(rcv, _) => Seq(rcv)
           case PredicateAccess(params, _) => params
-          case PredicateAccessPredicate(pred_acc, perm) => Seq(pred_acc, perm)
+          case PredicateAccessPredicate(pred_acc, perm) => Seq(pred_acc) ++ perm.toSeq
           case Unfolding(acc, body) => Seq(acc, body)
           case Applying(wand, body) => Seq(wand, body)
+          case Asserting(ass, body) => Seq(ass, body)
           case Old(exp) => Seq(exp)
           case CondExp(cond, thn, els) => Seq(cond, thn, els)
           case Let(v, exp, body) => Seq(v, exp, body)
@@ -106,6 +110,7 @@ object Nodes {
           case FuncApp(_, args) => args
           case DomainFuncApp(_, args, m) =>
             args ++ m.keys ++ m.values
+          case BackendFuncApp(_, args) => args
 
           case EmptySeq(elemTyp) => Seq(elemTyp)
           case ExplicitSeq(elems) => elems
@@ -122,9 +127,20 @@ object Nodes {
           case ExplicitSet(elems) => elems
           case EmptyMultiset(elemTyp) => Seq(elemTyp)
           case ExplicitMultiset(elems) => elems
+
+          case EmptyMap(keyTyp, valueTyp) => Seq(keyTyp, valueTyp)
+          case ExplicitMap(exprs) => exprs
+          case Maplet(key, value) => Seq(key, value)
+          case MapUpdate(base, key, value) => Seq(base, key, value)
+          case MapLookup(base, key) => Seq(base, key)
+          case MapContains(key, base) => Seq(key, base)
+          case MapCardinality(base) => Seq(base)
+          case MapDomain(base) => Seq(base)
+          case MapRange(base) => Seq(base)
+
           case e: ExtensionExp => e.extensionSubnodes
         }
-      case t: Type => Nil
+      case _: Type => Nil
     }
     n match {
       case t: Typed => subnodesWithType ++ Seq(t.typ)
@@ -166,7 +182,7 @@ object Nodes {
      */
     val relevantChildren = (node match {
       case p: Product => p.productIterator.flatMap {
-        case t: Traversable[_] if !t.isInstanceOf[Node] => t
+        case t: Iterable[_] if !t.isInstanceOf[Node] => t
         case other => other :: Nil
       }
     }).toSeq

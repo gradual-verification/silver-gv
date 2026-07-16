@@ -1,42 +1,40 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 domain Process {
-
+  
   function p_empty(): Process
-
+  
   function p_merge(p1: Process, p2: Process): Process
-
+  
   function p_seq(p1: Process, p2: Process): Process
-
+  
   function p_incr(): Process
-
+  
   function p_single(n: Int): Process
-
+  
   function p_dual(n: Int, m: Int): Process
-
+  
   axiom empty_1L {
     (forall p: Process :: p_merge(p_empty(), p) == p)
   }
-
+  
   axiom empty_2L {
     (forall p: Process :: p_seq(p_empty(), p) == p)
   }
-
+  
   axiom empty_2R {
     (forall p: Process :: p_seq(p, p_empty()) == p)
   }
-
+  
   axiom seq_assoc {
     (forall p1: Process :: (forall p2: Process :: (forall p3: Process :: p_seq(p_seq(p1, p2), p3) == p_seq(p1, p_seq(p2, p3)))))
   }
-
+  
   axiom single_def {
     (forall n: Int :: { p_single(n) } (n > 0 ? p_seq(p_incr(), p_single(n - 1)) : p_empty()) == p_single(n))
   }
-
+  
   axiom dual_def {
     (forall n: Int, m: Int :: { p_dual(n, m) } p_merge(p_single(n), p_single(m)) == p_dual(n, m))
   }

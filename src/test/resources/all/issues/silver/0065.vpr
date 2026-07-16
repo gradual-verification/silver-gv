@@ -2,7 +2,6 @@
 // http://creativecommons.org/publicdomain/zero/1.0/
 
 method good(x: Int, y: Perm) {
-  //:: ExpectedOutput(parser.error)
   assume x != 0
   assume y != none
 
@@ -17,12 +16,9 @@ method good(x: Int, y: Perm) {
 method bad(x: Int, y: Perm) {
   assume x != 0
 
-  // ExpectedOutput(typechecker.error) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(typechecker.error)
   var p1: Perm := x % x
 
-  // ExpectedOutput(typechecker.error) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(typechecker.error)
   var p2: Perm := x / y
-
-  // ExpectedOutput(typechecker.error) // revive this annotation when parser error not expected in this test file - Jenna
-  var p3: Perm := y / y
 }

@@ -28,7 +28,6 @@ predicate TestV$(this$_1: Ref) {
 
 method Testfoo$(this: Ref, k$: Perm)
   requires this != null
-  //:: ExpectedOutput(parser.error)
   requires k$ > none
   requires write > k$
   requires acc(TestV$(this), write)
@@ -42,7 +41,7 @@ method Testfoo$(this: Ref, k$: Perm)
 method TestBug(this: Ref, k$_1: Perm)
   requires acc(this.Testtk$, write) && (this.Testtk$ != null) && acc(this.Testtk$.joinable$, write) && this.Testtk$.joinable$
 {
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert false
 }
 
@@ -50,11 +49,10 @@ method TestBug1(this: Ref, k$_1: Perm)
   requires acc(this.Testtk$, write) && (this.Testtk$ != null)
   requires acc(this.Testtk$.joinable$, write) && this.Testtk$.joinable$
 {
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert false
 }
 
-/*
 method TestjoinTk$(this: Ref, k$_1: Perm)
   requires this != null
   requires k$_1 > none
@@ -63,9 +61,8 @@ method TestjoinTk$(this: Ref, k$_1: Perm)
   ensures acc(TestV$(this), write)
 {
   assert this.Testtk$.joinable$
-  /:: ExpectedOutput(inhale.failed:insufficient.permission)
+  //:: ExpectedOutput(inhale.failed:insufficient.permission)
   inhale true && acc(TestV$(this.Testtk$.par$Testfoo$this$_2), write)
   this.Testtk$.joinable$ := false
   assert acc(TestV$(this), write)
 }
-*/

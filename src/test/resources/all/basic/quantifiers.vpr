@@ -1,10 +1,11 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
+
+//:: IgnoreFile(/silicon/issue/233/)
 
 field Cell_x: Int
-/*
+
 function Cell_get(this: Ref): Int
 	requires acc(this.Cell_x, write)
 { this.Cell_x }
@@ -16,7 +17,7 @@ function reqIGt0(i: Int): Int
 function f(i: Int, j: Int): Int { i + j }
 
 function g(i: Int): Int { i }
-*/
+
 method forallCellGet10(c: Ref) returns (d: Ref)
 	requires c != null
 	requires acc(c.Cell_x, write)

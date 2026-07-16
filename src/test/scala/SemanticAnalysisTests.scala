@@ -6,12 +6,13 @@
 
 package viper.silver
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import viper.silver.frontend._
 import viper.silver.parser._
 import viper.silver.verifier.Verifier
+import viper.silver.ast.NoPosition
 
-class SemanticAnalysisTests extends FunSuite {
+class SemanticAnalysisTests extends AnyFunSuite {
 
   object frontend extends SilFrontend {
     def configureVerifier(args: Seq[String]): SilFrontendConfig = ???
@@ -25,17 +26,21 @@ class SemanticAnalysisTests extends FunSuite {
   // }
 
   test("Semantic analysis in AST without shared nodes") {
-    val binExp1 = PBinExp(PIntLit(1), "==", PIntLit(1))
-    val binExp2 = PBinExp(PIntLit(1), "==", PIntLit(1))
-    val method = PMethod(PIdnDef("m"), Seq(), Seq(), Seq(), Seq(), Some(PSeqn(Seq(PSeqn(Seq(PAssert(binExp1), PSeqn(Seq(PAssert(binExp2)))))))))
-    val program = PProgram(Seq(), Seq(), Seq(), Seq(), Seq(), Seq(), Seq(method), Seq(), Seq())
+    val p = (NoPosition, NoPosition)
+    val binExp1 = PBinExp(PIntLit(1)(p), PReserved.implied(PSymOp.EqEq), PIntLit(1)(p))(p)
+    val binExp2 = PBinExp(PIntLit(1)(p), PReserved.implied(PSymOp.EqEq), PIntLit(1)(p))(p)
+    val body = PSeqn(PDelimited.impliedBlock(Seq(PAssert(PReserved.implied(PKw.Assert), binExp1)(p), PSeqn(PDelimited.impliedBlock(Seq(PAssert(PReserved.implied(PKw.Assert), binExp2)(p))))(p))))(p)
+    val method = PMethod(Seq(), PReserved.implied(PKw.Method), PIdnDef("m")(p), PGrouped.impliedParen(PDelimited.empty), None, PDelimited.empty, PDelimited.empty, Some(body))(p)
+    val program = PProgram(Nil, Seq(method))(p, Seq())
     assert(frontend.doSemanticAnalysis(program) === frontend.Succ(program))
   }
 
   test("Semantic analysis in AST with shared nodes") {
-    val binExp = PBinExp(PIntLit(1), "==", PIntLit(1))
-    val method = PMethod(PIdnDef("m"), Seq(), Seq(), Seq(), Seq(), Some(PSeqn(Seq(PSeqn(Seq(PAssert(binExp), PSeqn(Seq(PAssert(binExp)))))))))
-    val program = PProgram(Seq(), Seq(), Seq(), Seq(), Seq(), Seq(), Seq(method), Seq(), Seq())
+    val p = (NoPosition, NoPosition)
+    val binExp = PBinExp(PIntLit(1)(p), PReserved.implied(PSymOp.EqEq), PIntLit(1)(p))(p)
+    val body = PSeqn(PDelimited.impliedBlock(Seq(PAssert(PReserved.implied(PKw.Assert), binExp)(p), PSeqn(PDelimited.impliedBlock(Seq(PAssert(PReserved.implied(PKw.Assert), binExp)(p))))(p))))(p)
+    val method = PMethod(Seq(), PReserved.implied(PKw.Method), PIdnDef("m")(p), PGrouped.impliedParen(PDelimited.empty), None, PDelimited.empty, PDelimited.empty, Some(body))(p)
+    val program = PProgram(Nil, Seq(method))(p, Seq())
     assert(frontend.doSemanticAnalysis(program) === frontend.Succ(program))
   }
 }

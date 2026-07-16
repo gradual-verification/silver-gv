@@ -1,12 +1,12 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
-//:: IgnoreFile(/silicon/issue/208/)
 
 field f: Int
 
 method m7(xs: Seq[Ref]) {
 
     assume |xs| >= 1
+	assume forall i:Int, j:Int :: i >= 0 && i < |xs| && j >= 0 && j < |xs| && i != j ==> xs[i] != xs[j]
     inhale forall i: Int :: {xs[i].f} 0 <= i && i < |xs| ==> acc(xs[i].f)
 
     var v: Int

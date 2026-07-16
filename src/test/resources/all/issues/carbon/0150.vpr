@@ -4,7 +4,6 @@
 field Tree_height: Int
 
 predicate Tree_valid(self: Ref) {
-  //:: ExpectedOutput(parser.error)
   acc(self.Tree_height, 1 / 10)
 }
 
@@ -18,6 +17,6 @@ method test(self: Ref)
   requires acc(Tree_valid(self), write)
 {
     unfold acc(Tree_valid(self), write)
-    // ExpectedOutput(call.precondition:insufficient.permission) // revive this annotation when parser error not expected in this test file - Jenna
+    //:: ExpectedOutput(call.precondition:insufficient.permission)
     callee(self)
 }

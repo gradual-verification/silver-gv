@@ -8,59 +8,57 @@
  * "ready" is the initial state
  * "ready for Node_next" indicates that the iterator can advance a step
  * "ready for remove" indicates that the Iterator_current element can be removed from the list
- *
+ * 
  * The protocol followed indicates, that the Iterator_hasNext() method of the iterator in the "ready" state can be used
  * to transition to the "ready for Node_next" state iff there is a Node_next element in the list. Furthermore the iterator's
  * Node_next() method can only be called in the "ready for Node_next" state and transitions the iterator to the "redy for
  * remove" state. From the "ready for remove" state it is possible to transition to the ready state directly or
  * by calling the Iterator_remove() method to remove the Iterator_current item. It is moreover possible to get back access to the
- * linked list by giving up access to the iterator in the "ready" state.
+ * linked list by giving up access to the iterator in the "ready" state.  
  */
-
-//:: IgnoreFile(/silicon/issue/208/)
 
 //main method used as an example execution using the Iterator class
 method main(l: Ref)
 requires l!=null && List_state(l)
 ensures  l!=null && List_state(l) {
   var b: Bool
-
+  
   //add some values to the list
   List_put(l, 1)
   List_put(l, 0)
   List_put(l, -1)
-
+  
   //create an iterator
   var i: Ref
   i := Iterator_new(l)
-
+  
   //check if there is a first element
   b := Iterator_hasNext(i)
-
+  
   //loop over the list using the iterator
   while(b)
   invariant b ==> Iterator_readyForNext(i)
   invariant !b ==> Iterator_ready(i) {
-
+  
     //get the next value in the list
     var tmp: Int
     tmp := Iterator_next(i)
-
+    
     //transition to the "ready" state by...
     if (tmp < 0) {
-
+    
       //...removing the element
       Iterator_remove(i)
     } else {
-
+    
       //...using the provided magic wand for a direct transition
       apply Iterator_readyForRemove(i) --* Iterator_ready(i)
     }
-
+    
     //check if the end of the list has been reached
     b := Iterator_hasNext(i)
   }
-
+  
   //get back access to the list, by giving up the iterator
   apply Iterator_ready(i) --* List_state(l)
 }
@@ -184,7 +182,7 @@ ensures  Iterator_ready(this) --* List_state(l) {
         Node_swap(Node_get_prev(this.Iterator_current), this.Iterator_iteratee.List_sentinel, this.Iterator_current)
     }
 
-    /* transferring the remaining 1/2 permissions to this.Iterator_iteratee into the
+    /* transferring the remaining 1/2 permissions to this.Iterator_iteratee into the 
      * footprint ensures, that its value cannot be chaned, i.e. stays l.
      */
     assert acc(this.Iterator_iteratee)
@@ -299,12 +297,12 @@ predicate Node_reverse(this: Ref) {
 function Node_get_next(this: Ref): Ref
 requires Node_state(this) {
   unfolding Node_state(this) in this.Node_next}
-
+  
 function Node_get_prev(this: Ref): Ref
 requires Node_state(this) {
   unfolding Node_state(this) in this.Node_prev}
-
-function Node_rev_next(this: Ref): Ref
+  
+function Node_rev_next(this: Ref): Ref  
 requires Node_reverse(this) {
   unfolding Node_reverse(this) in this.Node_next}
 

@@ -42,7 +42,7 @@ object Sanitizer {
       case (forall: PForall, c) => {
 
         // Check if bound variables clash with scope
-        val bounds = forall.vars.map(_.idndef.name).toSet
+        val bounds = forall.boundVars.map(_.idndef.name).toSet
         val scope = scopeAt(forall)
         val intersection = scope & bounds
 
@@ -60,11 +60,11 @@ object Sanitizer {
         (forall, Context(renames, freshNames))
       }
 
-      case (PIdnDef(name), c) if c.renames.contains(name) =>
-        (PIdnDef(c.renames(name)), c)
+      case (idn@PIdnDef(name), c) if c.renames.contains(name) =>
+        (PIdnDef(c.renames(name))(idn.pos), c)
 
-      case (PIdnUse(name), c) if c.renames.contains(name) =>
-        (PIdnUse(c.renames(name)), c)
+      case (idn: PIdnUse, c) if c.renames.contains(idn.name) =>
+        (idn.rename(c.renames(idn.name)), c)
 
     }, Context()).execute(program)
   }

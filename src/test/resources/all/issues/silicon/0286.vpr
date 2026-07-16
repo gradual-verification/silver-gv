@@ -1,14 +1,12 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field next : Ref
 field val : Int
 
 predicate list(start : Ref)
 {
-  acc(start.val) && acc(start.next) &&
+  acc(start.val) && acc(start.next) && 
     (start.next != null ==> list(start.next))
 }
 
@@ -20,12 +18,12 @@ function elems(start: Ref) : Seq[Int]
       Seq(start.val) :
       Seq(start.val) ++ elems(start.next)
     )
-  )
+  )  
 }
 
 predicate lseg(start : Ref, end:Ref)
 {
-  acc(start.val) && acc(start.next) &&
+  acc(start.val) && acc(start.next) && 
     (start.next != end ==> lseg(start.next,end))
 }
 
@@ -37,7 +35,7 @@ function lsegelems(start: Ref, end: Ref) : Seq[Int]
       Seq(start.val) :
       Seq(start.val) ++ lsegelems(start.next,end)
     )
-  )
+  )  
 }
 
 

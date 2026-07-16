@@ -1,6 +1,8 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
+//:: IgnoreFile(/silicon/issue/104/)
+
 // NOTES (important points are also commented in the code below)
 // (1) The definition of list(xs) precludes the case xs==null. But, without unfolding the predicate, this information is not available. This is important for e.g.,
 // showing that length increases by 1 when prepending. For now, the explicit non-nullity of the argument has been conjoined everywhere.
@@ -9,7 +11,7 @@
 // (3) The relationships between different abstractions is not always automatic. For example, the if-condition tail(xs)==null actually implies that elems(xs) has
 // length 1 and also that head(xs) == tail(xs). Both of these facts are needed to prove the postconditions of insert. Resorting to limited functions would allow
 // manual assertions to trigger these properties. Without limited-functions-style triggering (i.e. only based on fold/unfold of predicates), these must be assumptions
-//:: IgnoreFile(/silicon/issue/208/)
+
 field next: Ref
 field val: Int
 

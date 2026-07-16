@@ -6,8 +6,7 @@ field data: Ref
 
 method run(this: Ref)
   requires this != null
-  // ExpectedOutput(not.wellformed:insufficient.permission) // revive this annotation when parser error not expected in this test file - Jenna
-  //:: ExpectedOutput(parser.error)
+  //:: ExpectedOutput(not.wellformed:insufficient.permission)
   ensures acc(this.data, this.frac)
 {
   assume false

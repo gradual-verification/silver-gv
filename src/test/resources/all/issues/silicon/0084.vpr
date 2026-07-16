@@ -3,7 +3,6 @@
 
 field f: Int
 
-//:: ExpectedOutput(parser.error)
 predicate inv(this: Ref) { acc(this.f, 1/2) }
 
 method test(S: Seq[Ref])

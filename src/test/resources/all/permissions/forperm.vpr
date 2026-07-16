@@ -5,7 +5,6 @@ field f: Int
 field g: Int
 
 method test01(x: Ref, b: Bool)
-  //:: ExpectedOutput(parser.error)
   requires acc(x.f, b ? write : none)
 {
   assert b || forperm y: Ref [y.f] :: false
@@ -13,7 +12,7 @@ method test01(x: Ref, b: Bool)
   assert (forperm y: Ref [y.f] :: false) ==> (forperm y: Ref [y.f] :: true)
   assert (forperm y: Ref [y.f] :: false) ==> !b
 
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert forperm y: Ref [y.f] :: false
 }
 
@@ -26,7 +25,7 @@ method test01b(x: Ref, b: Bool)
 
   assert (forperm y: Ref [y.f] :: false) ==> !b
 
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert forperm y: Ref [y.f] :: false
 }
 
@@ -36,7 +35,7 @@ method test02(x: Ref, b1: Bool, b2: Bool)
   assert forperm y: Ref [y.f] :: y != null
   assert forperm y: Ref [y.g] :: y != null
 }
-/*
+
 method test03(x: Ref, b1: Bool, b2: Bool)
   requires acc(x.f, 1/5)
 {
@@ -47,7 +46,7 @@ method test03(x: Ref, b1: Bool, b2: Bool)
 
   assert forperm y: Ref [y.g] :: y.f > a1
 
-  /:: ExpectedOutput(assert.failed:insufficient.permission)
+  //:: ExpectedOutput(assert.failed:insufficient.permission)
   assert forperm y: Ref [y.f] :: y.g > y.g - 1
 }
 
@@ -67,4 +66,3 @@ method test04(x: Ref, b1: Bool, b2: Bool)
   assert forperm y: Ref [y.g] :: old(y.f) <= old(y.f)
 }
 
-*/

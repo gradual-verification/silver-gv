@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 /* This example encodes and specifies an iterative implementation of inserting
  * a value into a linked list. A magic wand is used to book-keep permissions.
  *
@@ -15,6 +13,7 @@
  *  - See list_insert_noseq.vpr for a version from which all sequences have
  *    been removed.
  */
+
 
 field val: Int
 field next: Ref

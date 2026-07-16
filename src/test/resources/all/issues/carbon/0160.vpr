@@ -1,7 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: ExpectedOutput(parser.error)
 method multiple_arrays(arr1: Array, arr2: Array)
 requires forall i: Int :: true ==> acc(loc(arr1, i).val, 0 <= i && i < 10 ? write : none)
 {
@@ -11,7 +10,7 @@ requires forall i: Int :: true ==> acc(loc(arr1, i).val, 0 <= i && i < 10 ? writ
 	invariant 0 <= t && t <= 10
     {
         loc(arr1, t).val := 0
-        // ExpectedOutput(assignment.failed:insufficient.permission) // revive this annotation when parser error not expected in this test file - Jenna
+        //:: ExpectedOutput(assignment.failed:insufficient.permission)
         loc(arr2, t).val := 0
         t := t + 1
     }

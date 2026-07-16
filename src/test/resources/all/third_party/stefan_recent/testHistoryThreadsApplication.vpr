@@ -1,75 +1,73 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 //:: IgnoreFile(/carbon/issue/283/)
 
 domain TYPE {
-
+  
   function class_Object(): TYPE
-
+  
   function class_History(): TYPE
-
+  
   function class_SubjectLock(): TYPE
-
+  
   function class_Thread(): TYPE
-
+  
   function class_Worker(): TYPE
-
+  
   function class_Main(): TYPE
-
+  
   function instanceof(t1: TYPE, t2: TYPE): Bool
-
+  
   function type_of(val: Ref): TYPE
-
+  
   axiom object_top {
     (forall t: TYPE :: instanceof(class_Object(), t))
   }
 }
 
 domain Process {
-
+  
   function p_empty(): Process
-
+  
   function p_merge(p1: Process, p2: Process): Process
-
+  
   function p_seq(p1: Process, p2: Process): Process
-
+  
   function p_incr(): Process
-
+  
   function p_single(n: Int): Process
-
+  
   function p_dual(n: Int, m: Int): Process
-
+  
   axiom empty_1L {
     (forall p: Process :: p_merge(p_empty(), p) == p)
   }
-
+  
   axiom empty_2L {
     (forall p: Process :: p_seq(p_empty(), p) == p)
   }
-
+  
   axiom empty_2R {
     (forall p: Process :: p_seq(p, p_empty()) == p)
   }
-
+  
   axiom seq_assoc {
     (forall p1: Process :: (forall p2: Process :: (forall p3: Process :: p_seq(p_seq(p1, p2), p3) == p_seq(p1, p_seq(p2, p3)))))
   }
-
+  
   axiom single_def {
     (forall n: Int :: { p_single(n) } (n > 0 ? p_seq(p_incr(), p_single(n - 1)) : p_empty()) == p_single(n))
   }
-
+  
   axiom dual_def {
     (forall n: Int, m: Int :: { p_dual(n, m) } p_merge(p_single(n), p_single(m)) == p_dual(n, m))
   }
-
+  
   axiom lemma_post {
     (forall n: Int :: p_single(n) == (n > 0 ? p_seq(p_single(n - 1), p_incr()) : p_empty()))
   }
-
+  
   axiom single_axiom_post {
     (forall m: Int, n: Int :: p_seq(p_single(m), p_single(n)) == p_single(m + n))
   }
@@ -107,29 +105,29 @@ predicate History__inv(diz: Ref) {
   acc(diz.History__x_hist_value, write) && (acc(diz.History__x_hist_mode, write) && (diz.History__x_hist_mode == 1))
 }
 
-predicate History__hist_do_incr(diz: Ref, frac: Perm, proc: Process)
+predicate History__hist_do_incr(diz: Ref, frac: Perm, proc: Process) 
 
-predicate History__hist_idle(diz: Ref, frac: Perm, proc: Process)
+predicate History__hist_idle(diz: Ref, frac: Perm, proc: Process) 
 
 predicate SubjectLock__inv(diz: Ref) {
   acc(diz.SubjectLock__subject, wildcard) && acc(History__inv(diz.SubjectLock__subject), write)
 }
 
-predicate SubjectLock__valid(diz: Ref)
+predicate SubjectLock__valid(diz: Ref) 
 
-predicate SubjectLock__locked(diz: Ref, p: Perm, count: Int)
+predicate SubjectLock__locked(diz: Ref, p: Perm, count: Int) 
 
-predicate Thread__is_a_Thread(diz: Ref)
+predicate Thread__is_a_Thread(diz: Ref) 
 
-predicate Thread__instance_of_Thread(diz: Ref)
+predicate Thread__instance_of_Thread(diz: Ref) 
 
-predicate Thread__joinToken(diz: Ref, p: Perm)
+predicate Thread__joinToken(diz: Ref, p: Perm) 
 
-predicate Thread__preFork(diz: Ref, p: Perm)
+predicate Thread__preFork(diz: Ref, p: Perm) 
 
-predicate Thread__postJoin(diz: Ref, p: Perm)
+predicate Thread__postJoin(diz: Ref, p: Perm) 
 
-predicate Thread__joinToken_at_Thread(diz: Ref, p: Perm)
+predicate Thread__joinToken_at_Thread(diz: Ref, p: Perm) 
 
 predicate Thread__preFork_at_Thread(diz: Ref, p: Perm) {
   true
@@ -139,25 +137,25 @@ predicate Thread__postJoin_at_Thread(diz: Ref, p: Perm) {
   true
 }
 
-predicate Worker__is_a_Worker(diz: Ref)
+predicate Worker__is_a_Worker(diz: Ref) 
 
-predicate Worker__instance_of_Worker(diz: Ref)
+predicate Worker__instance_of_Worker(diz: Ref) 
 
-predicate Worker__is_a_Thread(diz: Ref)
+predicate Worker__is_a_Thread(diz: Ref) 
 
-predicate Worker__instance_of_Thread(diz: Ref)
+predicate Worker__instance_of_Thread(diz: Ref) 
 
-predicate Worker__joinToken(diz: Ref, p: Perm)
+predicate Worker__joinToken(diz: Ref, p: Perm) 
 
 predicate Worker__joinToken_at_Worker(diz: Ref, p: Perm) {
   acc(Worker__joinToken_at_Thread(diz, p), write)
 }
 
-predicate Worker__preFork(diz: Ref, p: Perm)
+predicate Worker__preFork(diz: Ref, p: Perm) 
 
-predicate Worker__postJoin(diz: Ref, p: Perm)
+predicate Worker__postJoin(diz: Ref, p: Perm) 
 
-predicate Worker__joinToken_at_Thread(diz: Ref, p: Perm)
+predicate Worker__joinToken_at_Thread(diz: Ref, p: Perm) 
 
 predicate Worker__preFork_at_Thread(diz: Ref, p: Perm) {
   true
@@ -371,6 +369,7 @@ method SubjectLock__lock(diz: Ref, current_thread_id: Int, count: Int, p: Perm) 
   requires diz != null
   requires current_thread_id >= 0
   requires count >= 0
+  requires p >= none
   requires (count > 0 ? acc(SubjectLock__locked(diz, p, count), write) : acc(SubjectLock__valid(diz), p))
   ensures acc(SubjectLock__locked(diz, p, count + 1), write)
   ensures (count == 0) ==> acc(SubjectLock__inv(diz), write)
@@ -384,6 +383,7 @@ method SubjectLock__unlock(diz: Ref, current_thread_id: Int, count: Int, p: Perm
   requires count > 0
   requires acc(SubjectLock__locked(diz, p, count), write)
   requires (count == 1) ==> acc(SubjectLock__inv(diz), write)
+  requires p >= none
   ensures (count == 1 ? acc(SubjectLock__valid(diz), p) : acc(SubjectLock__locked(diz, p, count - 1), write))
 {
   inhale false

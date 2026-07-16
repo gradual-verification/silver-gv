@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field next: Ref
 field value: Int
 
@@ -24,9 +22,9 @@ method addother(this: Ref, i: Int)
   ensures forall x: Int :: (contains(this, x) == old(contains(this, x)) || (x == i))
 {
   var n: Ref
-
+  
   unfold acc(valid(this))
-
+  
   if (this.next != null) {
     // assert acc(this.next) && (this.next != null) && acc(valid(this.next))
     addother(this.next, i)
@@ -42,6 +40,6 @@ method addother(this: Ref, i: Int)
     fold acc(valid(this.next))
     // assert (forall x: Int :: true ==> (contains(this.next, x) == (x == i)))
   }
-
+  
   fold acc(valid(this))
 }

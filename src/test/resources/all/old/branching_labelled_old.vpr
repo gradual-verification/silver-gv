@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field f: Int
 
 method main(i:Int) {
@@ -19,9 +17,6 @@ label initial
 
   //shouldn't work because the state label is undefined on at least one execution path => fails
   //:: ExpectedOutput(assert.failed:labelled.state.not.reached)
-  //:: MissingOutput(assert.failed:labelled.state.not.reached, /carbon/issue/114/)
-  //:: UnexpectedOutput(assert.failed:assertion.false, /carbon/issue/114/)
-  //:: UnexpectedOutput(assert.failed:insufficient.permission, /carbon/issue/114/)
   assert m.f == 3 && old[initial](m.f) == 15
 }
 
@@ -40,8 +35,5 @@ label initial
   }
 
   //:: ExpectedOutput(assert.failed:labelled.state.not.reached)
-  //:: MissingOutput(assert.failed:labelled.state.not.reached, /carbon/issue/114/)
-  //:: UnexpectedOutput(assert.failed:assertion.false, /carbon/issue/114/)
-  //:: UnexpectedOutput(assert.failed:insufficient.permission, /carbon/issue/114/)
   assert m.f == 3 && old[initial](m.f) == 15
 }

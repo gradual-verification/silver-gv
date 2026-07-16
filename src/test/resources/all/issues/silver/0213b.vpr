@@ -5,7 +5,6 @@ predicate PP()
 define P() PP()
 
 method testP() {
-  //:: ExpectedOutput(parser.error)
   assert perm(P()) == none
 }
 
@@ -13,6 +12,6 @@ predicate QQ()
 define Q() true
 
 method testQ() {
-  // ExpectedOutput(parser.error) // revive this annotation when above parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(parser.error)
   assert perm(Q()) == none
 }

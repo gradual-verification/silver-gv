@@ -12,6 +12,5 @@ method read(a: Ref)
     requires acc(valid(a), write)
     ensures acc(valid(a), write)
 {
-    //:: ExpectedOutput(parser.error)
     assert perm(a.f) == none /* OK - perm(e.f) does not require e != null */
 }

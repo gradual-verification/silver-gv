@@ -9,7 +9,7 @@ package viper.silver.ast.utility
 import scala.reflect.ClassTag
 import viper.silver.ast._
 import viper.silver.ast.utility.rewriter.Traverse
-import viper.silver.ast.utility.Triggers.TriggerGeneration
+import viper.silver.ast.utility.Triggers.{DefaultTriggerGeneration, TriggerGeneration}
 import viper.silver.utility.Sanitizer
 
 /** Utility methods for expressions. */
@@ -25,6 +25,7 @@ object Expressions {
     case CondExp(cnd, thn, els) => isPure(cnd) && isPure(thn) && isPure(els)
     case unf: Unfolding => isPure(unf.body)
     case app: Applying => isPure(app.body)
+    case Asserting(a, e) => isPure(e)
     case QuantifiedExp(_, e0) => isPure(e0)
     case Let(_, _, body) => isPure(body)
     case e: ExtensionExp => e.extensionIsPure
@@ -35,12 +36,14 @@ object Expressions {
          | _: PermExp
          | _: FuncApp
          | _: DomainFuncApp
+         | _: BackendFuncApp
          | _: LocationAccess
          | _: AbstractLocalVar
          | _: SeqExp
          | _: SetExp
          | _: MultisetExp
-         | _:ForPerm
+         | _: MapExp
+         | _: ForPerm
       => true
   }
 
@@ -96,9 +99,10 @@ object Expressions {
   def asBooleanExp(e: Exp): Exp = {
     e.transform({
       case _: AccessPredicate | _: MagicWand => TrueLit()()
-      case fa@Forall(vs,ts,body) => Forall(vs,ts,asBooleanExp(body))(fa.pos,fa.info)
-      case Unfolding(predicate, exp) => asBooleanExp(exp)
+      case fa@Forall(vs,ts,body) => Forall(vs, ts, asBooleanExp(body))(fa.pos, fa.info, fa.errT)
+      case Unfolding(_, exp) => asBooleanExp(exp)
       case Applying(_, exp) => asBooleanExp(exp)
+      case ass@Asserting(a, exp) => Asserting(asBooleanExp(a), asBooleanExp(exp))(ass.pos, ass.info, ass.errT)
     })
   }
 
@@ -175,6 +179,12 @@ object Expressions {
     case e: Exp => e
   }
 
+  def containsPermissionIntrospection(e: Exp): Boolean = e.exists {
+    case _: CurrentPerm => true
+    case _: ForPerm => true
+    case _ => false
+  }
+
   // note: dependency on program for looking up function preconditions
   def proofObligations(e: Exp): (Program => Seq[Exp]) = (prog: Program) => {
     e.reduceTree[Seq[Exp]] {
@@ -184,11 +194,16 @@ object Expressions {
           case _ => NoPosition
         }
         // Conditions for the current node.
-        val conds = n match {
-          case f@FieldAccess(rcv, _) => List(NeCmp(rcv, NullLit()(p))(p), FieldAccessPredicate(f, WildcardPerm()(p))(p))
+        val conds: Seq[Exp] = n match {
+          case f@FieldAccess(rcv, _) => List(NeCmp(rcv, NullLit()(p))(p), FieldAccessPredicate(f, Some(WildcardPerm()(p)))(p))
           case f: FuncApp => prog.findFunction(f.funcname).pres
           case Div(_, q) => List(NeCmp(q, IntLit(0)(p))(p))
           case Mod(_, q) => List(NeCmp(q, IntLit(0)(p))(p))
+          case SeqIndex(s, idx) => List(GeCmp(idx, IntLit(0)(p))(p), LtCmp(idx, SeqLength(s)(p))(p))
+          case MapLookup(m, k) => List(MapContains(k, m)(p))
+          case Unfolding(pred, _) => List(pred)
+          case Applying(wand, _) => List(wand)
+          case Asserting(a, _) => List(a)
           case _ => Nil
         }
         // Only use non-trivial conditions for the subnodes.
@@ -200,16 +215,16 @@ object Expressions {
         // Combine the conditions of the subnodes depending on what node we currently have.
         val finalSubConds = n match {
           case And(left, _) =>
-            val Seq(leftConds, rightConds) = nonTrivialSubConds
+            val Seq(leftConds, rightConds, Seq()) = nonTrivialSubConds
             reduceAndProofObs(left, leftConds, rightConds, p)
           case Implies(left, _) =>
-            val Seq(leftConds, rightConds) = nonTrivialSubConds
+            val Seq(leftConds, rightConds, Seq()) = nonTrivialSubConds
             reduceImpliesProofObs(left, leftConds, rightConds, p)
           case Or(left, _) =>
-            val Seq(leftConds, rightConds) = nonTrivialSubConds
+            val Seq(leftConds, rightConds, Seq()) = nonTrivialSubConds
             reduceOrProofObs(left, leftConds, rightConds, p)
           case CondExp(cond, _, _) =>
-            val Seq(condConds, thenConds, elseConds) = nonTrivialSubConds
+            val Seq(condConds, thenConds, elseConds, Seq()) = nonTrivialSubConds
             reduceCondExpProofObs(cond, condConds, thenConds, elseConds, p)
           case _ => subConds.flatten
         }
@@ -266,17 +281,17 @@ object Expressions {
   }
 
   /** See [[viper.silver.ast.utility.Triggers.TriggerGeneration.generateTriggerSetGroups]] */
-  def generateTriggerGroups(exp: QuantifiedExp): Seq[(Seq[TriggerGeneration.TriggerSet], Seq[LocalVarDecl])] = {
-    TriggerGeneration.generateTriggerSetGroups(exp.variables map (_.localVar), exp.exp)
-                     .map{case (triggers, vars) => (triggers, vars map (v => LocalVarDecl(v.name, v.typ)()))}
+  def generateTriggerGroups(exp: QuantifiedExp, tg: TriggerGeneration = DefaultTriggerGeneration): Seq[(Seq[tg.TriggerSet], Seq[LocalVarDecl])] = {
+    tg.generateTriggerSetGroups(exp.variables map (_.localVar), exp.exp)
+      .map{case (triggers, vars) => (triggers, vars map (v => LocalVarDecl(v.name, v.typ)()))}
   }
 
   /** Returns the first group of trigger sets (together with newly introduced
     * variables) returned by [[Expressions.generateTriggerGroups]], or `None`
     * if the latter didn't return any group.
     */
-  def generateTriggerSet(exp: QuantifiedExp): Option[(Seq[LocalVarDecl], Seq[TriggerGeneration.TriggerSet])] = {
-    val gen = Expressions.generateTriggerGroups(exp)
+  def generateTriggerSet(exp: QuantifiedExp, tg: TriggerGeneration = DefaultTriggerGeneration): Option[(Seq[LocalVarDecl], Seq[tg.TriggerSet])] = {
+    val gen = Expressions.generateTriggerGroups(exp, tg)
 
     if (gen.nonEmpty)
       gen.find(pair => pair._2.isEmpty) match {

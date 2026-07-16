@@ -1,4 +1,3 @@
-//:: ExpectedOutput(parser.error)
 domain Functions {
   function __learn_trigger__(b: Bool): Bool
   function exists_path(start:Ref, end:Ref): Bool
@@ -14,7 +13,7 @@ method append(from:Ref)
     assume from != null
     link_DAG_next(from)
     assert exists_path(y,y) ==> __learn_trigger__(foo(from,y)) // should pass
-    // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+    //:: ExpectedOutput(assert.failed:assertion.false)
     assert exists_path(y,y) ==> __learn_trigger__(foo(y,y)) // should fail
 }
 

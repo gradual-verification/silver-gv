@@ -1,4 +1,6 @@
-//:: ExpectedOutput(parser.error)
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
 method wow(s: Seq[Int])
   requires forall i: Int :: {i in s} i in s == i > 5
 {

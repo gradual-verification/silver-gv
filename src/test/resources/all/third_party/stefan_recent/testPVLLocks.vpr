@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field Main__q1: Ref
 
 field Main__q2: Ref
@@ -15,9 +13,9 @@ field Queue__data: Int
 
 field Queue__used: Bool
 
-predicate Worker__joinToken(diz: Ref)
+predicate Worker__joinToken(diz: Ref) 
 
-predicate Queue__lock_held(diz: Ref)
+predicate Queue__lock_held(diz: Ref) 
 
 predicate Queue__lock_invariant(diz: Ref) {
   acc(diz.Queue__used, write) && acc(diz.Queue__data, write)
@@ -138,7 +136,7 @@ method Worker__run(diz: Ref, current_thread_id: Int)
     invariant acc(diz.Worker__q1, wildcard)
     invariant diz.Worker__q1 != null
     invariant acc(diz.Worker__q2, wildcard)
-    invariant diz.Worker__q2 != null
+    invariant diz.Worker__q2 != null 
   {
     __flatten_15 := Queue__take(diz.Worker__q1, current_thread_id)
     tmp := __flatten_15
@@ -185,7 +183,7 @@ method Queue__put(diz: Ref, current_thread_id: Int, x: Int)
   while (diz.Queue__used)
     invariant acc(diz.Queue__used, write)
     invariant acc(diz.Queue__data, write)
-    invariant acc(Queue__lock_held(diz), write)
+    invariant acc(Queue__lock_held(diz), write) 
   {
     fold acc(Queue__lock_invariant(diz), write)
     exhale acc(Queue__lock_invariant(diz), write)
@@ -219,7 +217,7 @@ method Queue__take(diz: Ref, current_thread_id: Int) returns (sys__result: Int)
   while (!diz.Queue__used)
     invariant acc(diz.Queue__used, write)
     invariant acc(diz.Queue__data, write)
-    invariant acc(Queue__lock_held(diz), write)
+    invariant acc(Queue__lock_held(diz), write) 
   {
     fold acc(Queue__lock_invariant(diz), write)
     exhale acc(Queue__lock_invariant(diz), write)

@@ -6,6 +6,7 @@
 
 package viper.silver.ast.utility
 
+import java.util.concurrent.atomic.AtomicInteger
 import reflect.ClassTag
 
 object GenericTriggerGenerator {
@@ -16,11 +17,12 @@ object GenericTriggerGenerator {
   * filters for accepting/rejecting possible triggers can be changed
   * (see, e.g. [[GenericTriggerGenerator.setCustomIsForbiddenInTrigger]]).
   */
+
 abstract class GenericTriggerGenerator[Node <: AnyRef,
                                        Type <: AnyRef,
                                        Exp  <: Node : ClassTag,
                                        Var <: Node : ClassTag,
-                                       Quantification <: Exp : ClassTag] extends Mutable {
+                                       Quantification <: Exp : ClassTag] {
   /* 2014-09-22 Malte: I tried to use abstract type members instead of type
    * parameters, but that resulted in the warning "The outer reference in this
    * type test cannot be checked at run time.".
@@ -30,11 +32,10 @@ abstract class GenericTriggerGenerator[Node <: AnyRef,
   val TriggerSet = GenericTriggerGenerator.TriggerSet
 
   private type PossibleTrigger = Exp
-  private type ForbiddenInTrigger = Exp
 
   /* Node */
   protected def hasSubnode(root: Node, child: Node): Boolean
-  protected def visit[A](root: Node)(f: PartialFunction[Node, A])
+  protected def visit[A](root: Node)(f: PartialFunction[Node, A]): Unit
   protected def deepCollect[A](root: Node)(f: PartialFunction[Node, A]): Seq[A]
   protected def reduceTree[A](root: Node)(f: (Node, Seq[A]) => A): A
   protected def transform[N <: Node](root: N)(f: PartialFunction[Node, Node]): N
@@ -58,12 +59,12 @@ abstract class GenericTriggerGenerator[Node <: AnyRef,
   def isForbiddenInTrigger(e: Exp): Boolean
 
   protected var customIsPossibleTrigger: PartialFunction[Exp, Boolean] = PartialFunction.empty
-  def setCustomIsPossibleTrigger(f: PartialFunction[Exp, Boolean]) { customIsPossibleTrigger = f }
+  def setCustomIsPossibleTrigger(f: PartialFunction[Exp, Boolean]): Unit = { customIsPossibleTrigger = f }
 
   protected var customIsForbiddenInTrigger: PartialFunction[Exp, Boolean] = PartialFunction.empty
-  def setCustomIsForbiddenInTrigger(f: PartialFunction[Exp, Boolean]) { customIsForbiddenInTrigger = f }
+  def setCustomIsForbiddenInTrigger(f: PartialFunction[Exp, Boolean]): Unit = { customIsForbiddenInTrigger = f }
 
-  private var nextUniqueId = 0
+  private val nextUniqueId = new AtomicInteger(0)
 
   def generateTriggerSetGroup(vs: Seq[Var], toSearch: Exp): Option[(Seq[TriggerSet], Seq[Var])] =
     generateTriggerSetGroups(vs: Seq[Var], toSearch: Exp).headOption
@@ -75,7 +76,7 @@ abstract class GenericTriggerGenerator[Node <: AnyRef,
      * etc. This is, because it could be that only the combination of multiple
      * ei's provides enough terms to cover all quantified variables.
      */
-    toSearch.toStream.flatMap(generateTriggerSetGroup(vs, _)).headOption
+    toSearch.to(LazyList).flatMap(generateTriggerSetGroup(vs, _)).headOption
 
   def generateStrictestTriggerSet(vs: Seq[Var], toSearch: Exp): Option[(TriggerSet, Seq[Var])] =
     generateTriggerSetGroups(vs, toSearch).headOption.map { case (triggerSets, vars) =>
@@ -164,6 +165,15 @@ abstract class GenericTriggerGenerator[Node <: AnyRef,
     val nestedBoundVars: Seq[Var] =
       deepCollect(toSearch){ case qe: Quantification => Quantification_vars(qe)}.flatten
 
+    val additionalRelevantVars: Seq[Var] = {
+      val additionalVarFinder = additionalRelevantVariables(vs, nestedBoundVars)
+      deepCollect(toSearch){
+        case n if additionalVarFinder.isDefinedAt(n) => additionalVarFinder(n)
+      }.flatten
+    }
+    val allRelevantVars = (vs ++ additionalRelevantVars).distinct
+    val modifyTriggers = modifyPossibleTriggers(allRelevantVars)
+
     /* Get all function applications */
     reduceTree(toSearch)((node: Node, results: Seq[Seq[(PossibleTrigger, Seq[Var], Seq[Var])]]) => node match {
       case possibleTrigger: PossibleTrigger if isPossibleTrigger(possibleTrigger) =>
@@ -176,8 +186,7 @@ abstract class GenericTriggerGenerator[Node <: AnyRef,
          */
         val processedArgs = getArgs(possibleTrigger) map (pt => transform(pt) {
           case e: Exp if isForbiddenInTrigger(e) =>
-            val newV = Var("fresh__" + nextUniqueId, Exp_typ(e))
-            nextUniqueId += 1
+            val newV = Var("fresh__" + nextUniqueId.getAndIncrement(), Exp_typ(e))
             extraVars +:= newV
 
             newV
@@ -187,7 +196,7 @@ abstract class GenericTriggerGenerator[Node <: AnyRef,
         processedArgs foreach (arg => visit(arg) {
           case v: Var =>
             if (nestedBoundVars.contains(v)) containsNestedBoundVars = true
-            if (vs.contains(v)) containedVars +:= v
+            if (allRelevantVars.contains(v)) containedVars +:= v
         })
 
         if (!containsNestedBoundVars && containedVars.nonEmpty)
@@ -195,9 +204,23 @@ abstract class GenericTriggerGenerator[Node <: AnyRef,
         else
           results.flatten
 
+      case e if modifyTriggers.isDefinedAt(e) => modifyTriggers.apply(e)(results)
+
       case _ => results.flatten
     })
   }
+
+  /*
+   * Hook for clients to add more cases to getFunctionAppsContaining to modify the found possible triggers.
+   * Used e.g. to wrap trigger expressions inferred from inside old-expression into old()
+   */
+  def modifyPossibleTriggers(relevantVars: Seq[Var]): PartialFunction[Node, Seq[Seq[(PossibleTrigger, Seq[Var], Seq[Var])]] =>
+    Seq[(PossibleTrigger, Seq[Var], Seq[Var])]] = PartialFunction.empty
+
+  /*
+   * Hook for clients to identify additional variables which can be covered by triggers.
+   */
+  def additionalRelevantVariables(relevantVars: Seq[Var], varsToAvoid: Seq[Var]): PartialFunction[Node, Seq[Var]] = PartialFunction.empty
 
   /* Precondition: if vars is non-empty then every (f,vs) pair in functs
    * satisfies the property that vars and vs are not disjoint.

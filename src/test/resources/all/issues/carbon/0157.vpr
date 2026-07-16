@@ -1,4 +1,3 @@
-//:: ExpectedOutput(parser.error)
 domain List[T] {
   function Nil(): List[T]
 }

@@ -1,15 +1,15 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
+//:: IgnoreFile(/silicon/issue/233/)
+// Issue: forall keyword
+
 // Capture avoiding substitution is implemented by the following rules:
 // 1) (forall x in A)[x->e] = (forall x in A)
 // 2) (forall x in A)[y->e] = (forall x' in A[x->x';y->e]) if x belongs to fv(e) and x != y
 // 3) (forall x in A)[y->e] = (forall x in A[y->e]) if x does not belong to fv(e) and x != y
 
 // ========= Rule 1 enforcement =========
-
-
-//:: IgnoreFile(/silicon/issue/208/)
 
 define macro1(i) (
     i == i && forall i: Int :: i == i

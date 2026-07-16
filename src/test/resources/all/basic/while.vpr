@@ -67,14 +67,14 @@ method t5(n: Int, r: Ref) returns ()
         i := i+1
     }
 }
-/*
-method t6(r: Ref) returns ()
+
+/*method t6(r: Ref) returns ()
 {
-    while (perm(r.f) == none)
-    {
+    while (perm(r.f) == none)*/ /* OK - perm(e.f) does not require e != null */
+    /*{
     }
-}
-*/
+}*/
+
 method t7(r: Ref) returns ()
 {
     var i: Int := 1

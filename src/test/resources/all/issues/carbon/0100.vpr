@@ -2,9 +2,6 @@
 // http://creativecommons.org/publicdomain/zero/1.0/
 
 // oldC2SCases/unrelatedLockchange.chalice
-
-//:: IgnoreFile(/silicon/issue/208/)
-
 field mustReleaseBounded$: Ref
 
 field mustReleaseUnbounded$: Ref
@@ -20,7 +17,7 @@ method Main$change(this: Ref, m: Ref, n: Int)
   requires m != null
   ensures [true, perm(m.mustReleaseBounded$) == none]
   ensures [true, write - perm(m.mustReleaseBounded$) == write]
-  ensures [true, acc(m.mustReleaseUnbounded$, write - perm(m.mustReleaseBounded$))]
+  ensures [true, acc(m.mustReleaseUnbounded$, write - perm(m.mustReleaseBounded$))] 
   ensures [true, (forperm r$_15: Ref [r$_15.mustReleaseUnbounded$] :: false)]
 {
   assert m != null

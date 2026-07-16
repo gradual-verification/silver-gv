@@ -6,8 +6,6 @@
  * the parser. That is, the resolver detects malformed parser ASTs.
  */
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field f: Int
 field g: Int
 

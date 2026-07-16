@@ -7,12 +7,11 @@ field next: Ref
 
 /* good-wildcard.vpr */
 method main01(t1: Ref, t2: Ref)
-  //:: ExpectedOutput(parser.error)
   requires acc(t1.next, wildcard)
   requires acc(t2.next, wildcard)
 {
   if (t1 == t2) {
-    // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+    //:: ExpectedOutput(assert.failed:assertion.false)
     assert false
   }
 }
@@ -27,7 +26,7 @@ method main02(t1: Ref, t2: Ref)
   requires acc(t2.next.next, wildcard)
 {
   if (t1 == t2) {
-    // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+    //:: ExpectedOutput(assert.failed:assertion.false)
     assert false
   }
 }
@@ -38,7 +37,7 @@ method test01(t1: Ref, t2: Ref)
   requires acc(t1.next, wildcard)
   requires acc(t2.next, wildcard)
 {
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert t1 != t2
 }
 
@@ -53,7 +52,7 @@ method test03(t1: Ref, t2: Ref)
   requires acc(t1.next, 1/3)
   requires acc(t2.next, 1/3)
 {
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert t1 != t2
 }
 
@@ -68,6 +67,6 @@ method test05(t1: Ref, t2: Ref)
   requires acc(t1.next, 1/2)
   requires acc(t2.next, wildcard)
 {
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert t1 != t2
 }

@@ -10,21 +10,20 @@ predicate token(x: Ref) {
 method t_plus(x: Ref)
     requires acc(x.f)
 {
-    //:: ExpectedOutput(parser.error)
     fold acc(token(x), (1/10))
 }
 
 method t_minus_1(x: Ref)
     requires acc(x.f)
 {
-    // ExpectedOutput(fold.failed:negative.permission) // revive this annotation when parser error not expected in this test file - Jenna
+    //:: ExpectedOutput(fold.failed:permission.not.positive)
     fold acc(token(x), (-1/1))
 }
 
 method t_minus_2(x: Ref)
     requires acc(x.f)
 {
-    // ExpectedOutput(fold.failed:negative.permission) // revive this annotation when parser error not expected in this test file - Jenna
+    //:: ExpectedOutput(fold.failed:permission.not.positive)
     fold acc(token(x), -(1/1))
 }
 

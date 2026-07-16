@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field f: Int
 
 field elems: Seq[Ref]
@@ -22,7 +20,6 @@ method test01(x: Ref, y: Ref, b: Bool)
   y.f := 0
 
   assert fun01(x, y, true) == old(fun01(x, y, true))
-  //:: UnexpectedOutput(assert.failed:assertion.false, /silicon/issue/205/)
   assert fun02(x, y, true) == old(fun02(x, y, true))
 }
 
@@ -51,6 +48,7 @@ method test02(xs: Seq[Ref], i1: Int, i2: Int, x: Ref)
   requires 0 <= i1 && i1 < |xs|
   requires 0 <= i2 && i2 < |xs|
   requires i1 != i2
+  requires forall j1: Int, j2: Int :: j1 in [0..|xs|) && j2 in [0..|xs|) && j1 != j2 ==> xs[j1] != xs[j2]
   requires forall j: Int :: 0 <= j && j < |xs| ==> acc(xs[j].f, write)
   requires acc(x.elems) && x.elems == xs
 {
@@ -58,15 +56,15 @@ method test02(xs: Seq[Ref], i1: Int, i2: Int, x: Ref)
 
   assert fun01qp(xs, i2) == old(fun01qp(xs, i2))
   assert fun02qp(xs, i2) == old(fun02qp(xs, i2))
-
+  
   assert fun03qp(x, i2) == old(fun03qp(x, i2))
   assert fun04qp(x, i2) == old(fun04qp(x, i2))
-
+  
   xs[i2].f := 0
-
+  
   //:: ExpectedOutput(assert.failed:assertion.false)
   assert fun01qp(xs, i2) == old(fun01qp(xs, i2))
-
+  
 }
 
 
@@ -74,18 +72,19 @@ method test03(xs: Seq[Ref], i1: Int, i2: Int, x: Ref)
   requires 0 <= i1 && i1 < |xs|
   requires 0 <= i2 && i2 < |xs|
   requires i1 != i2
+  requires forall j1: Int, j2: Int :: j1 in [0..|xs|) && j2 in [0..|xs|) && j1 != j2 ==> xs[j1] != xs[j2]
   requires forall j: Int :: 0 <= j && j < |xs| ==> acc(xs[j].f, write)
   requires acc(x.elems) && x.elems == xs
 {
   xs[i1].f := 0
 
   assert fun02qp(xs, i2) == old(fun02qp(xs, i2))
-
+  
   xs[i2].f := 0
-
+  
   //:: ExpectedOutput(assert.failed:assertion.false)
   assert fun02qp(xs, i2) == old(fun02qp(xs, i2))
-
+  
 }
 
 
@@ -93,18 +92,19 @@ method test04(xs: Seq[Ref], i1: Int, i2: Int, x: Ref)
   requires 0 <= i1 && i1 < |xs|
   requires 0 <= i2 && i2 < |xs|
   requires i1 != i2
+  requires forall j1: Int, j2: Int :: j1 in [0..|xs|) && j2 in [0..|xs|) && j1 != j2 ==> xs[j1] != xs[j2]
   requires forall j: Int :: 0 <= j && j < |xs| ==> acc(xs[j].f, write)
   requires acc(x.elems) && x.elems == xs
 {
   xs[i1].f := 0
 
   assert fun03qp(x, i2) == old(fun03qp(x, i2))
-
+  
   xs[i2].f := 0
-
+  
   //:: ExpectedOutput(assert.failed:assertion.false)
   assert fun03qp(x, i2) == old(fun03qp(x, i2))
-
+  
 }
 
 
@@ -112,16 +112,17 @@ method test05(xs: Seq[Ref], i1: Int, i2: Int, x: Ref)
   requires 0 <= i1 && i1 < |xs|
   requires 0 <= i2 && i2 < |xs|
   requires i1 != i2
+  requires forall j1: Int, j2: Int :: j1 in [0..|xs|) && j2 in [0..|xs|) && j1 != j2 ==> xs[j1] != xs[j2]
   requires forall j: Int :: 0 <= j && j < |xs| ==> acc(xs[j].f, write)
   requires acc(x.elems) && x.elems == xs
 {
   xs[i1].f := 0
 
   assert fun04qp(x, i2) == old(fun04qp(x, i2))
-
+  
   xs[i2].f := 0
-
+  
   //:: ExpectedOutput(assert.failed:assertion.false)
   assert fun04qp(x, i2) == old(fun04qp(x, i2))
-
+  
 }

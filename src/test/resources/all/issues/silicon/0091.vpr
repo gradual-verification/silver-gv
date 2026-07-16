@@ -1,7 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: ExpectedOutput(parser.error)
 domain A {}
 domain B {}
 domain C {}
@@ -17,6 +16,6 @@ method test() {
   var v4: Seq[Multiset[Set[D]]]
   var v5: Multiset[Multiset[Seq[Set[E]]]]
 
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert false
 }

@@ -1,6 +1,7 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
-//:: IgnoreFile(/silicon/issue/208/)
+
+//:: IgnoreFile(/silicon/issue/233/)
 
 domain PermissionHelper {
 
@@ -55,3 +56,4 @@ method Simple_test2(rd: Perm, this: Ref, x: Int) returns (vresult: Int)
 {
   vresult := x
 }
+

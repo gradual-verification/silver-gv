@@ -1,6 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
-/*
+
 method test0(){
   inhale (true)
   inhale (true)
@@ -16,7 +16,7 @@ method test2()
   inhale true
   inhale true
 }
-*/
+
 method test3(in_something: Int) {}
 method test4(inSomething: Int) {}
 
@@ -28,7 +28,6 @@ method test5()
   index := 0
 }
 
-//:: ExpectedOutput(parser.error)
 method test6(x: Int, S: Set[Int])
   requires x in S ==> x > 0
   requires x in(S intersection S) ==> true

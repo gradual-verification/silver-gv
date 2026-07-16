@@ -1,8 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 function zip(xs: Seq[Ref], ys: Seq[Ref]): Seq[Ref]
   requires |xs| == |ys| || |xs| == |ys| + 1
 {
@@ -31,3 +29,4 @@ method test01(xs: Seq[Ref], ys: Seq[Ref])
       ? xs
       : Seq(xs[0], ys[0]) ++ zip(xs[1..], ys[1..]))
 }
+

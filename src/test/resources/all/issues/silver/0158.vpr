@@ -3,7 +3,6 @@
 
 method m()
 {
-    // ExpectedOutput(consistency.error) // revive this annotation when below parser error not expected in this test file - Jenna
-    //:: ExpectedOutput(parser.error)
+    //:: ExpectedOutput(consistency.error)
     assert forall i : Int :: {} true
 }

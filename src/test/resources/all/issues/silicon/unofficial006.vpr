@@ -10,7 +10,6 @@
 method test01() {
   while(true) {
     var j: Int
-    //:: ExpectedOutput(parser.error)
     assume 0 <= j /* Crashed previous to Silicon commit f32dbf9a6ac4 */
   }
 }

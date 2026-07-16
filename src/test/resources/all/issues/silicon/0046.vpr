@@ -7,7 +7,6 @@ method test01(this: Ref)
   requires acc(this.f, write) && this.f == 0
 {
   while (true) {
-    //:: ExpectedOutput(parser.error)
     assert old(this.f) == 0 /* Used to fail */
   }
 

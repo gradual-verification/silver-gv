@@ -6,8 +6,6 @@
  * was used in a place where the consume heap h should be used.
  */
 
-//:: IgnoreFile(/silicon/issue/208/)
-
 field p: Ref
 field s: Set[Ref]
 

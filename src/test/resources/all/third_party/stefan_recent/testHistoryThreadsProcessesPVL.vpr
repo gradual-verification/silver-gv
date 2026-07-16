@@ -1,9 +1,8 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
-//:: IgnoreFile(/silicon/issue/208/)
 
 field History__x: Int
-/*
+
 method History__incr(diz: Ref, current_thread_id: Int)
   requires diz != null
   requires current_thread_id >= 0
@@ -13,7 +12,7 @@ method History__incr(diz: Ref, current_thread_id: Int)
 {
   inhale false
 }
-*/
+
 method History__single(diz: Ref, current_thread_id: Int, n: Int)
   requires diz != null
   requires current_thread_id >= 0
@@ -55,10 +54,10 @@ method History__dual(diz: Ref, current_thread_id: Int, n: Int, m: Int)
     History__single(diz, current_thread_id, n)
   }
 }
-/*
+
 method History__if_any_random(diz: Ref, current_thread_id: Int) returns (sys__result: Bool)
   requires diz != null
   requires current_thread_id >= 0
 {
   inhale false
-}*/
+}

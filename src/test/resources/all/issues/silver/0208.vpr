@@ -4,7 +4,6 @@
 define inRangeUpTo(i, k) 0 < i && i <= k
 
 method test(i:Int, j:Int, m:Int) {
-  //:: ExpectedOutput(parser.error)
   assume i-1 == j
   assume inRangeUpTo(m,j)
   assert inRangeUpTo(m,i-1)
@@ -22,7 +21,7 @@ define M(a) forall i: Int :: foo(a, i)
 method test02(i: Int) {
   assert foo(i, i)
   assert forall j: Int :: foo(j, j)
-  // ExpectedOutput(assert.failed:assertion.false) // revive this annotation when parser error not expected in this test file - Jenna
+  //:: ExpectedOutput(assert.failed:assertion.false)
   assert M(i)
 }
 

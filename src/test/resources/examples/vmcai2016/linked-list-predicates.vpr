@@ -1,7 +1,7 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
+//:: IgnoreFile(/carbon/issue/280/)
 
 /*****************************************************************
  * List Nodes
@@ -192,3 +192,25 @@ method dequeue(this: Ref) returns (res: Int)
 
 field held: Int
 field changed: Bool
+
+method test(lock: Ref)
+  ensures [true, forperm r: Ref [r.held] :: false]
+{
+  /* Acquire lock (without deadlock checking) */
+  inhale acc(List(lock)) && acc(lock.held) && acc(lock.changed)
+label acq
+
+  if(2 <= length(lock)) {
+    var r1: Int
+    r1 := dequeue(lock)
+
+    assert r1 <= peek(lock)
+
+    lock.changed := true
+  }
+
+  /* Release lock */
+  exhale    acc(List(lock)) && acc(lock.held) && acc(lock.changed)
+         && (old[acq](content(lock)) == content(lock) || lock.changed)
+}
+

@@ -1,7 +1,6 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-//:: IgnoreFile(/silicon/issue/208/)
 field val : Int
 
 predicate cell(x:Ref)
@@ -9,7 +8,7 @@ predicate cell(x:Ref)
     acc(x.val)
 }
 
-function get(x:Ref) : Int
+function get(x:Ref) : Int 
   requires cell(x)
 {
  unfolding cell(x) in x.val
@@ -24,6 +23,6 @@ method m(x:Ref, y:Ref)
      assert get(x) == 3 // check framing
      inhale cell(y)
      assert get(x) == 3
-     //:: ExpectedOutput(assert.failed:assertion.false)
+     //:: ExpectedOutput(assert.failed:assertion.false)    
      assert get(y) == 3
   }
