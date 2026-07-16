@@ -584,7 +584,7 @@ class FastParser {
   //def one[$: P]: P[PExp] = P((strOne) map { s => PFullPerm })
 
   // Replace exp with ("1" or "write") GRADV
-  def accessPredImpl[$: P]: P[PKwOp.Acc => Pos => PAccPred] = P(maybePairArgument(locAcc, /*exp*/write).parens map { arg => PAccPred(_, arg) })
+  def accessPredImpl[$: P]: P[PKwOp.Acc => Pos => PAccPred] = P(maybePairArgument(locAcc, exp).parens map { arg => PAccPred(_, arg) })
 
   def accessPred[$: P]: P[PAccPred] = P((P(PKwOp.Acc) ~ accessPredImpl) map { case (k, f) => f(k) }).pos
 
@@ -601,6 +601,7 @@ class FastParser {
 
   def predAcc[$: P]: P[PCall] = funcApp
 
+  //This was modified in frac-perm, but not sure if it was necessary
   def perm[$: P]: P[PKwOp.Perm => Pos => PCurPerm] = P(resAcc.parens map { r => PCurPerm(_, r) })
 
   def let[$: P]: P[PKwOp.Let => Pos => PExp] =
@@ -682,14 +683,14 @@ class FastParser {
   }
 
   // change predAcc GRADV
-  def predicateAccessAssertion[$: P]: P[PAccAssertion] = P(accessPred | predAcc.map {
+  def predicateAccessAssertion[$: P]: P[PAccAssertion] = P(accessPred | predAcc)/*predAcc.map {
     loc => {
       val perm = PFullPerm(PReserved(PKw.Write)(loc.pos))(loc.pos)
       val acc = PReserved(PKwOp.Acc)(loc.pos)
       val comma = PReserved(PSym.Comma)(loc.pos)
       val maybe = PMaybePairArgument(loc, Some((comma, perm)))(loc.pos)
       PAccPred(acc, PGrouped.impliedParen(maybe))(loc.pos)
-  }})
+  }})*/
 
   def setConstructor[$: P]: P[PKwOp.Set => Pos => PExp] =
     builtinConstructor(typ, exp)(

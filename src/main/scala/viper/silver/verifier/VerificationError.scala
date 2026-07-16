@@ -671,6 +671,12 @@ object reasons {
     def withNode(offendingNode: errors.ErrorNode = this.offendingNode) = InsufficientPermission(offendingNode.asInstanceOf[LocationAccess])
   }
 
+  case class PermExceedsOne(offendingNode: LocationAccess) extends AbstractErrorReason {
+    val id = "perm.exceeds.one"
+    def readableMessage: String = s"The permission of $offendingNode may be greater than one."
+    def withNode(offendingNode: errors.ErrorNode = this.offendingNode) = PermExceedsOne(offendingNode.asInstanceOf[LocationAccess])
+  }
+  
   case class LocInHeap(offendingNode: LocationAccess) extends AbstractErrorReason {
     val id = "loc.in.heap"
     def readableMessage = s"Location $offendingNode may already exist in the heap."

@@ -24,7 +24,7 @@ method test02(x: Ref) returns (b: Bool)
   ensures ? && true
 {
   while (b)
-    invariant acc(x.f, 1)
+    invariant acc(x.f, 1/1)
   {
     b := !b
   }
