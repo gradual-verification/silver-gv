@@ -820,7 +820,7 @@ case class SeqIndex(s: Exp, idx: Exp)(val pos: Position = NoPosition, val info: 
 }
 
 /** Access an element of an array by index. */
-case class ArrayIndex(s: Exp, idx: Exp)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends Exp with PrettyOperatorExpression with Lhs {
+case class ArrayIndex(s: Exp, idx: Exp)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends ArrayExp with PrettyOperatorExpression with Lhs {
   override lazy val check : Seq[ConsistencyError] =
     (if(!s.typ.isInstanceOf[ArrayType]) Seq(ConsistencyError(s"Expected array type but found ${s.typ}", s.pos)) else Seq()) ++
     (if(!(idx isSubtype Int)) Seq(ConsistencyError(s"Second parameter of array-access expression must be Int, but found ${idx.typ}", idx.pos)) else Seq())
@@ -887,7 +887,7 @@ case class SeqUpdate(s: Exp, idx: Exp, elem: Exp)(val pos: Position = NoPosition
 }
 
 /** Update an element of an array by index, returning the new array. */
-case class ArrayUpdate(s: Exp, idx: Exp, elem: Exp)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends Exp with Lhs {
+case class ArrayUpdate(s: Exp, idx: Exp, elem: Exp)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends ArrayExp with Lhs {
   override lazy val check : Seq[ConsistencyError] =
     (if(!s.typ.isInstanceOf[ArrayType]) Seq(ConsistencyError(s"Expected array type but found ${s.typ}", s.pos)) else Seq()) ++
     (if(!(idx isSubtype Int)) Seq(ConsistencyError(s"Second parameter of array-update expression must be of Int type, but found ${idx.typ}", idx.pos)) else Seq()) ++
@@ -908,7 +908,7 @@ case class SeqLength(s: Exp)(val pos: Position = NoPosition, val info: Info = No
 }
 
 /** The length of an array. */
-case class ArrayLength(s: Exp)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends Exp {
+case class ArrayLength(s: Exp)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends ArrayExp {
   override lazy val check : Seq[ConsistencyError] =
     if(!s.typ.isInstanceOf[ArrayType]) Seq(ConsistencyError(s"Expected array type but found ${s.typ}", s.pos)) else Seq()
   lazy val typ = Int

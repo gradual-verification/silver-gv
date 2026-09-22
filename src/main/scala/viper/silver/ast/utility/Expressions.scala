@@ -40,6 +40,7 @@ object Expressions {
          | _: LocationAccess
          | _: AbstractLocalVar
          | _: SeqExp
+         | _: ArrayExp
          | _: SetExp
          | _: MultisetExp
          | _: MapExp
