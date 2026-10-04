@@ -364,7 +364,7 @@ class FastParser {
 
   def atomReservedKw[$: P]: P[PExp] = {
     reservedKwMany(
-      StringIn("true", "false", "null", /*"old",*/ "result", "acc", "none", "wildcard", "write", "epsilon", "perm", "let", /*"forall",*/ "exists", "forperm",
+      StringIn("true", "false", "null", /*"old",*/ "result", "acc", "none", "wildcard", "write", "epsilon", "perm", "let", "forall", "exists", "forperm",
         /*"unfolding", "applying", "asserting", "Set", "Seq", "Multiset", "Map", "range", "domain",*/ "new"),
       str => pos => str match {
         case "true" => Pass.map(_ => PBoolLit(PReserved(PKw.True)(pos))(_))
@@ -379,7 +379,7 @@ class FastParser {
         case "epsilon" => Pass.map(_ => PEpsilon(PReserved(PKw.Epsilon)(pos))(_))
         case "perm" => perm.map(_(PReserved(PKwOp.Perm)(pos)))
         case "let" => let.map(_(PReserved(PKwOp.Let)(pos)))
-        //case "forall" => forall.map(_(PReserved(PKw.Forall)(pos)))
+        case "forall" => forall.map(_(PReserved(PKw.Forall)(pos)))
         case "exists" => exists.map(_(PReserved(PKw.Exists)(pos)))
         case "forperm" => forperm.map(_(PReserved(PKw.Forperm)(pos)))
         //case "unfolding" => unfolding.map(_(PReserved(PKwOp.Unfolding)(pos)))
@@ -690,7 +690,12 @@ class FastParser {
       val maybe = PMaybePairArgument(loc, Some((comma, perm)))(loc.pos)
       PAccPred(acc, PGrouped.impliedParen(maybe))(loc.pos)
   }})
-
+  //NOTE: To future developers here,
+  //this was commented out because as of now we do not support sets/seq etc
+  //and leaving it in causes the compiler to yell because apparently some of these functions
+  //are broken. Buyer beware.
+  // -carvalj, 04/10/2026 (DD/MM/YYYY)
+/*
   def setConstructor[$: P]: P[PKwOp.Set => Pos => PExp] =
     builtinConstructor(typ, exp)(
       { case (t, g) => PEmptySet(_, t, g) },
@@ -714,7 +719,7 @@ class FastParser {
       { case (t, g) => PEmptyMap(_, t, g) },
       { t => PExplicitMap(_, t) }
     )
-
+*/
   def builtinConstructor[$: P, T, U, E <: PNode](types: => P[T], element: => P[E])(
     empty: (Option[PGrouped[PSym.Bracket, T]], PDelimited.Comma[PSym.Paren, Nothing]) => U,
     nonEmpty: (PDelimited.Comma[PSym.Paren, E]) => U
