@@ -1367,6 +1367,7 @@ case class PSize(l: PSymOp.Or, seq: PExp, r: PSymOp.Or)(val pos: (Position, Posi
   override val signatures: List[PTypeSubstitution] = List(
     // Maps:
     Map(POpApp.pArgS(0) -> MakeSeq(elementType), POpApp.pResS -> Int),
+    Map(POpApp.pArgS(0) -> MakeArray(elementType), POpApp.pResS -> Int),
     Map(POpApp.pArgS(0) -> MakeSet(elementType), POpApp.pResS -> Int),
     Map(POpApp.pArgS(0) -> MakeMultiset(elementType), POpApp.pResS -> Int),
     Map(POpApp.pArgS(0) -> MakeMap(keyType, elementType), POpApp.pResS -> Int)
