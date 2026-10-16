@@ -192,6 +192,20 @@ case class Translator(program: PProgram) {
         LocalVarAssign(LocalVar(idnuse.name, ttyp(idnuse.decl.get.asInstanceOf[PAssignableVarDecl].typ))(pos, SourcePNodeInfo(idnuse)), exp(rhs))(pos, info)
       case PAssign(PDelimited(field: PFieldAccess), _, rhs) =>
         FieldAssign(FieldAccess(exp(field.rcv), findField(field.idnref))(field, SourcePNodeInfo(field)), exp(rhs))(pos, info)
+      case PAssign(PDelimited(lookup: PLookup), _, rhs) =>
+        lookup.base.typ match {
+          case _: PSeqType => SeqIndexAssign(SeqIndex(exp(lookup.base), exp(lookup.idx))(pos, info), exp(rhs))(pos, info)
+          case _: PArrayType => ArrayIndexAssign(ArrayIndex(exp(lookup.base), exp(lookup.idx))(pos, info), exp(rhs))(pos, info)
+          case _: PMapType => MapLookupAssign(MapLookup(exp(lookup.base), exp(lookup.idx))(pos, info), exp(rhs))(pos, info)
+          case t => sys.error(s"unexpected type $t for array/map lookup assignment")
+        }
+      case PAssign(PDelimited(update: PUpdate), _, rhs) =>
+        update.base.typ match {
+          case _: PSeqType => SeqIndexAssign(SeqIndex(exp(update.base), exp(update.key))(pos, info), exp(rhs))(pos, info)
+          case _: PArrayType => ArrayIndexAssign(ArrayIndex(exp(update.base), exp(update.key))(pos, info), exp(rhs))(pos, info)
+          case _: PMapType => MapLookupAssign(MapLookup(exp(update.base), exp(update.key))(pos, info), exp(rhs))(pos, info)
+          case t => sys.error(s"unexpected type $t for array/map update assignment")
+        }
       case lv: PVars =>
         // there are no declarations in the Viper AST; rather they are part of the scope signature
         lv.assign map stmt getOrElse Statements.EmptyStmt
@@ -590,6 +604,7 @@ case class Translator(program: PProgram) {
 
       case PLookup(base, _, index, _) => base.typ match {
         case _: PSeqType => SeqIndex(exp(base), exp(index))(pos, info)
+        case _: PArrayType => ArrayIndex(exp(base), exp(index))(pos, info)
         case _: PMapType => MapLookup(exp(base), exp(index))(pos, info)
         case t => sys.error(s"unexpected type $t")
       }
@@ -601,12 +616,14 @@ case class Translator(program: PProgram) {
 
       case PUpdate(base, _, key, _, value, _) => base.typ match {
         case _: PSeqType => SeqUpdate(exp(base), exp(key), exp(value))(pos, info)
+        case _: PArrayType => ArrayUpdate(exp(base), exp(key), exp(value))(pos, info)
         case _: PMapType => MapUpdate(exp(base), exp(key), exp(value))(pos, info)
         case t => sys.error(s"unexpected type $t")
       }
 
       case PSize(_, base, _) => base.typ match {
         case _: PSeqType => SeqLength(exp(base))(pos, info)
+        case _: PArrayType => ArrayLength(exp(base))(pos, info)
         case _: PMapType => MapCardinality(exp(base))(pos, info)
         case _: PSetType | _: PMultisetType => AnySetCardinality(exp(base))(pos, info)
         case t => sys.error(s"unexpected type $t")
@@ -633,7 +650,8 @@ case class Translator(program: PProgram) {
         MapDomain(exp(base.inner))(pos, info)
       case PMapRange(_, base) =>
         MapRange(exp(base.inner))(pos, info)
-
+      case PArray(_, elementType, sz) =>
+        ArrayInstance(ttyp(elementType.inner), exp(sz.inner.toSeq.head))(pos, info)
       case t: PExtender => t.translateExp(this)
     }
   }
@@ -675,6 +693,8 @@ case class Translator(program: PProgram) {
       SetType(ttyp(elemType.inner))
     case PMultisetType(_, elemType) =>
       MultisetType(ttyp(elemType.inner))
+    case PArrayType(_, elementType)=>
+      ArrayType(ttyp(elementType.inner))
     case typ: PMapType =>
       MapType(ttyp(typ.keyType), ttyp(typ.valueType))
     case typ@PDomainType(name, _) =>

@@ -125,6 +125,16 @@ sealed case class MultisetType(override val  elementType: Type) extends Collecti
 //    MultisetType(elementType.substitute(typVarsMap))
 }
 
+/** Type for arrays - carvalj, 6/22.
+ * for the future me reading this after it broke,
+ * I did NOT know what i was doing, good luck :D
+ * */
+sealed case class ArrayType(override val elementType: Type) extends CollectionType
+{
+  override type MyType = ArrayType
+  override def make(et:Type) : MyType = ArrayType(et)
+  override val genericName = "Array"
+}
 /** Type of maps */
 sealed case class MapType(keyType : Type, valueType : Type) extends BuiltInType with GenericType {
   val keyTypeParameter : TypeVar = TypeVar("K")

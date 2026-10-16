@@ -1,0 +1,10 @@
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+/* Binary search in a sorted array */
+
+
+method binary_search(a: Int , key: Int) returns (index: Int)
+{
+    var x: Array[Int] := Array[Int](false)
+}

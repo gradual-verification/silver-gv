@@ -633,6 +633,7 @@ object FastPrettyPrinter extends FastPrettyPrinterBase with BracketPrettyPrinter
       case Wand => "$WandType"
       case SeqType(elemType) => text("Seq") <> brackets(show(elemType))
       case SetType(elemType) => text("Set") <> brackets(show(elemType))
+      case ArrayType(elemType) => text("Array") <> brackets(show(elemType))
       case MultisetType(elemType) => text("Multiset") <> brackets(show(elemType))
       case MapType(keyType, valueType) => text("Map") <> brackets(show(keyType) <> "," <> show(valueType))
       case TypeVar(v) => v
@@ -668,6 +669,7 @@ object FastPrettyPrinter extends FastPrettyPrinterBase with BracketPrettyPrinter
         show(target) <+> ":=" <+> "new(" <> ssep(fields map (f => value(f.name)), char(',') <> space) <> ")"
       case LocalVarAssign(lhs, rhs) => show(lhs) <+> ":=" <+> nest(defaultIndent, show(rhs))
       case FieldAssign(lhs, rhs) => show(lhs) <+> ":=" <+> nest(defaultIndent, show(rhs))
+      case ArrayIndexAssign(lhs, rhs) => show(lhs) <+> ":=" <+> nest(defaultIndent, show(rhs))
       case Fold(e) => text("fold") <+> nest(defaultIndent, show(e))
       case Unfold(e) => text("unfold") <+> nest(defaultIndent, show(e))
       case Package(e, proofScript) => text("package") <+> show(e) <+> showBlock(proofScript)
@@ -800,12 +802,12 @@ object FastPrettyPrinter extends FastPrettyPrinterBase with BracketPrettyPrinter
         group(parens(show(cond) <+> "?" <> nest(defaultIndent, line <> show(thn) <+> ":" <@> show(els))))
       case Exists(v, triggers, exp) =>
         parens(text("exists") <+> showVars(v) <+> "::" <>
-          nest(defaultIndent, (if (triggers.isEmpty) nil else space <> ssep(triggers map show, space)) <+>
-            show(exp)))
+          (if (triggers.isEmpty) nil else space <> ssep(triggers map show, space)) <+>
+          show(exp))
       case Forall(v, triggers, exp) =>
-        group(parens(text("forall") <+> showVars(v) <+> "::" <>
-          nest(defaultIndent, (if (triggers.isEmpty) nil else line <> ssep(triggers map show, line)) <@>
-            show(exp))))
+        parens(text("forall") <+> showVars(v) <+> "::" <>
+          (if (triggers.isEmpty) nil else space <> ssep(triggers map show, space)) <+>
+          show(exp))
       case ForPerm(vars, resource, exp) =>
         group(parens(text("forperm")
           <> nest(defaultIndent, line <> showVars(vars)
@@ -842,6 +844,8 @@ object FastPrettyPrinter extends FastPrettyPrinterBase with BracketPrettyPrinter
         text(funcName) <> parens(ssep(args map show, group(char(',') <> line)))
       case EmptySeq(elemTyp) =>
         text("Seq[") <> showType(elemTyp) <> "]()"
+      case ArrayInstance(elemTyp, sz) =>
+        text("Array[") <> showType(elemTyp) <> "]" <> parens(show(sz))
       case ExplicitSeq(elems) =>
         text("Seq") <> parens(ssep(elems map show, group(char (',') <> line)))
       case RangeSeq(low, high) =>
@@ -849,6 +853,8 @@ object FastPrettyPrinter extends FastPrettyPrinterBase with BracketPrettyPrinter
       case si@SeqIndex(seq: PrettyOperatorExpression, idx) =>
         bracket(seq, si, LeftAssociative) <> brackets(show(idx))
       case SeqIndex(seq, idx) =>
+        show(seq) <> brackets(show(idx))
+      case ArrayIndex(seq, idx) =>
         show(seq) <> brackets(show(idx))
       case st@SeqTake(seq: PrettyOperatorExpression, n) =>
         bracket(seq, st, LeftAssociative) <> brackets(text("..") <> show(n))
@@ -862,7 +868,11 @@ object FastPrettyPrinter extends FastPrettyPrinterBase with BracketPrettyPrinter
         show(seq) <> brackets(show(n) <> "..")
       case SeqUpdate(seq, idx, elem) =>
         show(seq) <> group(brackets(show(idx) <+> ":=" <@> show(elem)))
+      case ArrayUpdate(seq, idx, elem) =>
+        show(seq) <> group(brackets(show(idx) <+> ":=" <@> show(elem)))
       case SeqLength(seq) =>
+        surround(show(seq),char ('|'))
+      case ArrayLength(seq) =>
         surround(show(seq),char ('|'))
       case SeqContains(elem, seq) =>
         group(parens(show(elem) <+> "in" <@> show(seq)))
@@ -954,6 +964,6 @@ object FastPrettyPrinter extends FastPrettyPrinterBase with BracketPrettyPrinter
           toParenDoc(r)
       }
 
-    group(ld <+> text(b.op) <@> rd)
+    ld <+> text(b.op) <+> rd
   }
 }

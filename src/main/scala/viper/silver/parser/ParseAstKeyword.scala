@@ -259,6 +259,8 @@ object PKw {
   type Map = PReserved[Map.type]
   case object Multiset extends PKw("Multiset") with PKeywordType
   type Multiset = PReserved[Multiset.type]
+  case object Array extends PKw("Array") with PKeywordType
+  type Array = PReserved[Array.type]
 }
 
 /** Anything that is composed of /![a-zA-Z]/ characters. */
@@ -518,4 +520,6 @@ object PKwOp {
   type Multiset = PReserved[Multiset.type]
   case object Map         extends PKwOp("Map")                      with PKeywordAtom
   type Map = PReserved[Map.type]
+  case object Array       extends PKwOp("Array")
+  type Array = PReserved[Array.type]
 }

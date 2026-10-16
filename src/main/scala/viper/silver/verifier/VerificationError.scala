@@ -729,6 +729,22 @@ object reasons {
       SeqIndexExceedsLength(seq, offendingNode.asInstanceOf[Exp])
   }
 
+  case class ArrayIndexNegative(seq: Exp, offendingNode: Exp) extends AbstractErrorReason {
+    val id = "array.index.negative"
+    def readableMessage = s"Index $offendingNode into $seq might be negative."
+
+    def withNode(offendingNode: errors.ErrorNode = this.offendingNode) =
+      ArrayIndexNegative(seq, offendingNode.asInstanceOf[Exp])
+  }
+
+  case class ArrayIndexExceedsLength(seq: Exp, offendingNode: Exp) extends AbstractErrorReason {
+    val id = "array.index.length"
+    def readableMessage = s"Index $offendingNode into $seq might exceed array length."
+
+    def withNode(offendingNode: errors.ErrorNode = this.offendingNode) =
+      ArrayIndexExceedsLength(seq, offendingNode.asInstanceOf[Exp])
+  }
+
   case class MapKeyNotContained(map: Exp, offendingNode: Exp) extends AbstractErrorReason {
     val id = "map.key.contains"
     def readableMessage = s"Map $map might not contain an entry at key $offendingNode."

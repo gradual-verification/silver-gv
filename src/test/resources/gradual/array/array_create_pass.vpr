@@ -1,0 +1,5 @@
+method binary_search(a: Int , key: Int) returns (index: Int)
+{
+    var y: Array[Int] := Array[Int](5)
+    var x: Array[Array[Int]]  := Array[Array[Int]](6)
+}

@@ -28,10 +28,18 @@ class GradualTests extends AnyFunSuite {
     files.foreach(testFile => {
       val fileRes = getClass.getResource(testFile)
       val file = Paths.get(fileRes.toURI)
-
-      frontend.translate(file) match {
-        case (None, errors) => sys.error("Error occurred during translating: " + errors)
-        case _ => ()
+      val name = new File(testFile).getName
+      val baseName = name.replaceFirst("\\.[^.]+$", "")
+      if (baseName.matches(".*fail\\d*")) {
+        frontend.translate(file) match {
+          case (Some(_), _) => sys.error(s"Expected parsing error for $testFile but it parsed successfully")
+          case (None, _) => ()
+        }
+      } else {
+        frontend.translate(file) match {
+          case (None, errors) => sys.error(s"Error occurred during translating $testFile: " + errors)
+          case _ => ()
+        }
       }
     })
   }
