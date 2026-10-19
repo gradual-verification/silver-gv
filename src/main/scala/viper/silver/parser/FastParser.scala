@@ -730,15 +730,12 @@ class FastParser {
       { case (t, g) => PEmptyMap(_, t, g) },
       { t => PExplicitMap(_, t) }
     )
-<<<<<<< HEAD
 */
-=======
   def arrayConstructor[$: P]: P[PKwOp.Array => Pos => PExp] =
     nonEmptyConstructor(typ, exp)(
       {(e, t) => PArray(_, e, t)}
     )
 
->>>>>>> origin/array-impl
   def builtinConstructor[$: P, T, U, E <: PNode](types: => P[T], element: => P[E])(
     empty: (Option[PGrouped[PSym.Bracket, T]], PDelimited.Comma[PSym.Paren, Nothing]) => U,
     nonEmpty: (PDelimited.Comma[PSym.Paren, E]) => U
