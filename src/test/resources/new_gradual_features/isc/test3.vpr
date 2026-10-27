@@ -1,0 +1,10 @@
+
+field f: Int
+
+method test1(xs: Array[Ref])
+  //requires forall i1: Int, i2: Int :: (0 <= i1 && i1 < |xs|) && (0 <= i2 && i2 < |xs|) && i1 != i2 ==> xs[i1] != xs[i2]
+  requires ? && true
+  ensures (forall i: Int :: (0 <= i && i < |xs|) ==> acc(xs[i].f)) && xs[0].f == 0
+{
+  xs[0].f := 0
+}

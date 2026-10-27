@@ -1,0 +1,20 @@
+//This will never work because producing a non-quantified chunk 
+//on a field that is quantified is not allowed
+
+field f: Int
+
+method test1(xs: Array[Ref])
+  //requires forall i1: Int, i2: Int :: (0 <= i1 && i1 < |xs|) && (0 <= i2 && i2 < |xs|) && i1 != i2 ==> xs[i1] != xs[i2]
+  requires forall i: Int :: (0 <= i && i < |xs|) ==> acc(xs[i].f)
+  ensures (forall i: Int :: (0 <= i && i < |xs|) ==> acc(xs[i].f)) && xs[0].f == 0
+{
+  var j: Int := 0
+
+  while(j < |xs|)
+  //The invariant produces a non-quantified chunk which causes an error
+    invariant (0 <= j && j < |xs|) && acc(xs[j].f)
+  {
+    xs[j].f := 0
+    j := j + 1
+  }
+}

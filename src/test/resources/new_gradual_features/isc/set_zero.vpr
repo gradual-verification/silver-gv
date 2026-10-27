@@ -1,0 +1,16 @@
+
+field f: Int
+
+method set_zero(xs: Array[Ref], left: Int, right: Int)
+  requires (0 <= left) && (left < right) && (right <= |xs|)
+  requires forall i: Int :: (left <= i && i < right) ==> acc(xs[i].f)
+  ensures (forall i: Int :: (left <= i && i < right) ==> acc(xs[i].f))
+{
+  if(right - left <= 1) {
+    xs[left].f := 0
+  } else {
+    var mid: Int := left + (right - left) / 2
+    set_zero(xs, left, mid)
+    set_zero(xs, mid, right)
+  }
+}
