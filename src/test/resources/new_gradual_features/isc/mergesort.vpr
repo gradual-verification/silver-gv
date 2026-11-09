@@ -1,0 +1,74 @@
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// class Cell
+field value:Int
+
+method parallel_mergesort(arr1:Array[Ref], arr2:Array[Ref], start:Int, end:Int)
+  requires start >= 0 && end <= |arr1| && |arr1| == |arr2|
+  requires forall i:Int :: (start <= i && i < end) ==> acc(arr1[i].value, write)
+  requires forall i:Int :: (start <= i && i < end) ==> acc(arr2[i].value, write)
+  ensures start >= 0 && end <= |arr1| && |arr1| == |arr2|
+  ensures forall i:Int :: (start <= i && i < end) ==> acc(arr1[i].value, write)
+  ensures forall i:Int :: (start <= i && i < end) ==> acc(arr2[i].value, write)
+{
+    var middle: Int
+    var t1A: Array[Ref]
+    var t1B: Array[Ref]
+    var t2A: Array[Ref]
+    var t2B: Array[Ref]
+
+    if(end-start > 1)
+    {
+      middle := start + (end-start)\2
+
+      // fork t1 := parallel_mergesort(a,b, start, middle)
+      t1A := arr1
+      t1B := arr2
+
+      // fork t2 := parallel_mergesort(a,b, middle, end)
+      t2A := arr1
+      t2B := arr2
+
+      // join t1
+
+      //join t2
+
+      merge(arr1,arr2,start,middle,end)
+    }
+}
+
+method merge(arr1: Array[Ref], arr2: Array[Ref], start:Int, middle:Int, end:Int)
+  requires 0 <= start && end <= |arr1| && |arr2| == |arr1| && start < middle && middle < end
+  requires forall k:Int :: (start <= k && k < end) ==> acc(arr1[k].value, write)
+  requires forall l:Int :: (start <= l && l < end) ==> acc(arr2[l].value, write)
+  ensures forall i:Int :: (start <= i && i < end) ==> acc(arr1[i].value, write)
+  ensures forall i:Int :: (start <= i && i < end) ==> acc(arr2[i].value, write)
+{
+    var I:Int := start
+    var J:Int := middle
+    var N:Int := start
+
+    while(N < end)
+      invariant 0 <= start && end <= |arr1|
+      invariant N == I+J-middle && 0 <= start
+      invariant start <= I
+      invariant middle <= J
+      invariant J <= end
+      invariant |arr1| == |arr2|
+      invariant forall i:Int :: (start <= i && i < end) ==> acc(arr1[i].value, write)
+	    invariant forall i:Int :: (start <= i && i < end) ==> acc(arr2[i].value, write)
+    {
+        if(J == end || (arr1[I]).value < (arr1[J]).value)
+        {
+            arr2[N].value := arr1[I].value
+            I:=I+1
+        } else
+        {
+            arr2[N].value := arr1[J].value
+            J:=J+1
+        }
+        N:=N+1
+    }
+}
+

@@ -1,0 +1,16 @@
+
+field f: Int
+
+method set_val(xs: Array[Ref])
+  requires ? && true
+  ensures (forall i:Int :: (0 <= i && i < |xs|) ==> acc(xs[i].f)) && xs[0].f == 0
+{
+  xs[0].f := 0
+}
+
+method test2(xs: Array[Ref])
+  requires forall i: Int :: (0 <= i && i < |xs|) ==> acc(xs[i].f)
+  ensures forall i:Int :: (0 <= i && i < |xs|) ==> acc(xs[i].f)
+{
+  set_val(xs)
+}
