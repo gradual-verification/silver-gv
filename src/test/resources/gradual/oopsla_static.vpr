@@ -7,9 +7,9 @@ predicate acyclic(this: Ref) {
   acc(this.head) && listSeg(this.head, null)
 }
 
-predicate listSeg(from: Ref, to: Ref) {
-  (from == to) ? true : (acc(from.val) && acc(from.next)
-      && listSeg(from.next, to))
+predicate listSeg(from: Ref, too: Ref) {
+  (from == too) ? true : (acc(from.val) && acc(from.next)
+      && listSeg(from.next, too))
 }
 
 method burner(burnee: Ref)

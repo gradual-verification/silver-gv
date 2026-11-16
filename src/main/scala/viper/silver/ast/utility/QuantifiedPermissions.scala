@@ -37,9 +37,9 @@ object QuantifiedPermissions {
   object SourceQuantifiedPermissionAssertion {
     def unapply(forall: Forall): Option[(Forall, Implies)] = {
       forall match {
-        case Forall(_, _, implies: Implies) =>
+        case Forall(_, _, implies: Implies, _, _) =>
           Some((forall, implies))
-        case Forall(_, _, expr) =>
+        case Forall(_, _, expr, _, _) =>
           Some(forall, Implies(BoolLit(true)(forall.pos, forall.info, forall.errT), expr)(forall.pos, forall.info, forall.errT))
         case _ =>
           None
@@ -60,7 +60,7 @@ object QuantifiedPermissions {
       n visit {
         case QuantifiedPermissionAssertion(_, _, acc: FieldAccessPredicate) =>
           collected += acc.loc.field
-        case Forall(_, triggers, _) => collected ++= triggers flatMap (_.exps) collect { case fa: FieldAccess => fa.field }
+        case Forall(_, triggers, _, _, _) => collected ++= triggers flatMap (_.exps) collect { case fa: FieldAccess => fa.field }
         case Exists(_, triggers, _) => collected ++= triggers flatMap (_.exps) collect { case fa: FieldAccess => fa.field }
       }
     }
@@ -77,7 +77,7 @@ object QuantifiedPermissions {
       n visit {
         case QuantifiedPermissionAssertion(_, _, acc: PredicateAccessPredicate) =>
           collected += program.findPredicate(acc.loc.predicateName)
-        case Forall(_, triggers, _) => collected ++= triggers flatMap (_.exps) collect { case pa: PredicateAccess => pa.loc(program) }
+        case Forall(_, triggers, _, _, _) => collected ++= triggers flatMap (_.exps) collect { case pa: PredicateAccess => pa.loc(program) }
         case Exists(_, triggers, _) => collected ++= triggers flatMap (_.exps) collect { case pa: PredicateAccess => pa.loc(program) }
       }
     }
@@ -99,7 +99,7 @@ object QuantifiedPermissions {
 
     def findResourceTriggers(n: Node): Unit = {
       n visit {
-        case Forall(_, triggers, _) =>
+        case Forall(_, triggers, _,_ ,_) =>
           extractResources(triggers)
         case Exists(_, triggers, _) =>
           extractResources(triggers)
@@ -115,7 +115,7 @@ object QuantifiedPermissions {
   def quantifiedMagicWands(root: Node, program: Program): collection.Set[MagicWandStructure.MagicWandStructure] = {
     (root collect {
       case QuantifiedPermissionAssertion(_, _, wand: MagicWand) => Seq(wand.structure(program))
-      case Forall(_,triggers,_) => triggers flatMap (_.exps) collect {case wand: MagicWand => wand.structure(program)}
+      case Forall(_,triggers,_,_ ,_) => triggers flatMap (_.exps) collect {case wand: MagicWand => wand.structure(program)}
       case Exists(_,triggers,_) => triggers flatMap (_.exps) collect {case wand: MagicWand => wand.structure(program)}
     } toSet) flatten
   }
@@ -256,9 +256,9 @@ object QuantifiedPermissions {
                 // Since the rhs cannot be a let-binding, we expand the let-expression in it.
                 // However, we still use a let in the condition; this preserves well-definedness if v isn't used anywhere
                 Forall(iqp.variables, iqp.triggers.map(t => t.replace(v.localVar, e)), Implies(And(cond, Let(v, e, icond)(lt.pos, lt.info, lt.errT))(lt.pos, lt.info, lt.errT), irhs.replace(v.localVar, e))(iqp.pos, iqp.info, iqp.errT))(iqp.pos, iqp.info, iqp.errT)
-              case iforall@Forall(ivars, itriggers, Implies(icond, ibod)) =>
+              case iforall@Forall(ivars, itriggers, Implies(icond, ibod),low, up) =>
                 // For all pure parts of the quantifier, we just re-wrap the body into a let.
-                Forall(ivars, itriggers, Implies(cond, Let(v, e, Implies(icond, ibod)(lt.pos, lt.info))(lt.pos, lt.info, lt.errT))(lt.pos, lt.info, lt.errT))(iforall.pos, iforall.info)
+                Forall(ivars, itriggers, Implies(cond, Let(v, e, Implies(icond, ibod)(lt.pos, lt.info))(lt.pos, lt.info, lt.errT))(lt.pos, lt.info, lt.errT),low,up)(iforall.pos, iforall.info)
             }
           }
           case _ =>

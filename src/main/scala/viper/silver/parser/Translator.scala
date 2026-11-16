@@ -553,6 +553,19 @@ case class Translator(program: PProgram) {
           desugaredForalls.tail.foldLeft(desugaredForalls.head: Exp)((conjuncts, forall) =>
             And(conjuncts, forall)(fa.pos, fa.info, fa.errT))
         }
+      case PBoundedForall(_, vars, _, triggers, e) =>
+        val ts = triggers map (t => Trigger((t.exp.inner.toSeq map exp) map (e => e match {
+          case PredicateAccessPredicate(inner, _) => inner
+          case _ => e
+        }))(t))
+        val fa = Forall(vars.toSeq map liftBoundedLogicalDecl, ts, exp(e), vars.toSeq map liftLower, vars.toSeq map liftUpper)(pos, info)
+        if (fa.isPure) {
+          fa
+        } else {
+          val desugaredForalls = QuantifiedPermissions.desugarSourceQuantifiedPermissionSyntax(fa)
+          desugaredForalls.tail.foldLeft(desugaredForalls.head: Exp)((conjuncts, forall) =>
+            And(conjuncts, forall)(fa.pos, fa.info, fa.errT))
+        }
       case PForPerm(_, vars, res, _, e) =>
         val varList = vars.toSeq map liftLogicalDecl
         exp(res.inner) match {
@@ -677,6 +690,10 @@ case class Translator(program: PProgram) {
   /** Takes a `PLogicalVarDecl` and turns it into a `LocalVarDecl`. */
   def liftLogicalDecl(logical: PLogicalVarDecl) =
       LocalVarDecl(logical.idndef.name, ttyp(logical.typ))(pos = logical.idndef, info = SourcePNodeInfo(logical))
+  def liftBoundedLogicalDecl(logical: PBoundedLogicalVarDecl) =
+      LocalVarDecl(logical.idndef.name, ttyp(logical.typ))(pos = logical.idndef, info = SourcePNodeInfo(logical))
+  def liftLower(logical: PBoundedLogicalVarDecl) = exp(logical.start)
+  def liftUpper(logical: PBoundedLogicalVarDecl) = exp(logical.end)
 
   /** Takes a `PType` and turns it into a `Type`. */
   def ttyp(t: PType): Type = t match {

@@ -592,7 +592,7 @@ object QuantifiedExp {
 }
 
 /** Universal quantification. */
-case class Forall(variables: Seq[LocalVarDecl], triggers: Seq[Trigger], exp: Exp)(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends QuantifiedExp {
+case class Forall(variables: Seq[LocalVarDecl],triggers: Seq[Trigger], exp: Exp, lower: Seq[Exp] = Seq(), upper: Seq[Exp] = Seq())(val pos: Position = NoPosition, val info: Info = NoInfo, val errT: ErrorTrafo = NoTrafos) extends QuantifiedExp {
   //require(isValid, s"Invalid quantifier: { $this } .")
   override lazy val check : Seq[ConsistencyError] =
     (if(!(exp isSubtype Bool)) Seq(ConsistencyError(s"Body of universal quantifier must be of Bool type, but found ${exp.typ}", exp.pos)) else Seq()) ++

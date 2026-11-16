@@ -192,7 +192,7 @@ trait ExpTransformer extends ProgramManager with ErrorReporter {
     case Unfolding(_, body) => Seq(body)
     case _: AccessPredicate | _: MagicWand => Nil
     case Applying(_, b) => Seq(b)
-    case Forall(_, _, exp) => Seq(exp)
+    case Forall(_, _, exp, _, _) => Seq(exp)
   }
 
   /**

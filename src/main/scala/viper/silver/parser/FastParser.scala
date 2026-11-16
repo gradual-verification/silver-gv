@@ -160,6 +160,8 @@ object FastParserCompanion {
     PKwOp.Let,
     // quantification
     PKw.Forall, PKw.Exists, PKw.Forperm,
+    //quantification bounding
+    PKw.In, PKw.To,
     // permission syntax
     PKwOp.Acc, PKw.Wildcard, PKw.Write, PKw.None, PKw.Epsilon, PKw.Perm,
     // modifiers
@@ -464,9 +466,9 @@ class FastParser {
 
   /** Expression which had parens around it if `bracketed` is true */
   def expParen[$: P](bracketed: Boolean): P[PExp] = P(gradExp(bracketed))
-  
+
   def exp[$: P]: P[PExp] = P(expParen(false))
-  
+
   /** Expression should be parenthesized (e.g. for `if (exp)`). We could consider making these parentheses optional in the future. */
   def parenthesizedExp[$: P]: P[PGrouped.Paren[PExp]] = exp.parens
 
@@ -616,14 +618,18 @@ class FastParser {
 
   def idndef[$: P]: P[PIdnDef] = P(ident map (PIdnDef.apply _)).pos
 
-  def forall[$: P]: P[PKw.Forall => Pos => PExp] = P(nonEmptyIdnTypeList(PLogicalVarDecl(_)) ~ PSym.ColonColon ~ trigger.rep ~ exp).map {
-    case (a, o, b, c) => PForall(_, a, o, b, c)
+  def forall[$: P]: P[PKw.Forall => Pos => PExp] = P(nonEmptyIdnTypeListQuant(PBoundedLogicalVarDecl(_)) ~ PSym.ColonColon ~ trigger.rep ~ exp).map {
+    case (a, o, b, c) => PBoundedForall(_, a, o, b, c)
   }
   def exists[$: P]: P[PKw.Exists => Pos => PExp] = P(nonEmptyIdnTypeList(PLogicalVarDecl(_)) ~ PSym.ColonColon ~ trigger.rep ~ exp).map {
     case (a, o, b, c) => PExists(_, a, o, b, c)
   }
 
-  def nonEmptyIdnTypeList[$: P, T](f: PIdnTypeBinding => T): P[PDelimited[T, PSym.Comma]] = P((idnTypeBinding map f).delimited(PSym.Comma, min = 1))
+  def nonEmptyIdnTypeList[$: P, T](f: PIdnTypeBinding => T): P[PDelimited[T, PSym.Comma]] = P((idnTypeBinding map f).delimited(PSym.Comma, min = 1, max=1))
+
+  def nonEmptyIdnTypeListQuant[$: P, T](f: PIdnTypeBindingQuant => T): P[PDelimited[T, PSym.Comma]] = P((idnTypeBindingQuant map f).delimited(PSym.Comma, min = 1, max=1))
+
+  def idnTypeBindingQuant[$: P]: P[PIdnTypeBindingQuant] = P((idndef ~ PSym.Colon ~ typInt ~ PKw.In ~ exp ~ PKw.To ~ exp) map (PIdnTypeBindingQuant.apply _).tupled).pos
 
   def idnTypeBinding[$: P]: P[PIdnTypeBinding] = P((idndef ~ PSym.Colon ~ typ) map (PIdnTypeBinding.apply _).tupled).pos
 
@@ -652,6 +658,18 @@ class FastParser {
 
   //Remove domainTyp and macroType GRADV
   def typ[$: P]: P[PType] = P(typReservedKw /*| domainTyp | macroType*/)
+
+  def typInt[$: P]: P[PType] =     P(reservedKwMany(
+
+    StringIn("Int"/*, "Seq", "Set", "Multiset", "Map"*/),
+    str => pos => str match {
+      case "Int" => Pass.map(_ => PPrimitiv(PReserved(PKw.Int)(pos))(_))
+        /*case "Seq" => seqType.map(_(PReserved(PKw.Seq)(pos)))
+        case "Set" => setType.map(_(PReserved(PKw.Set)(pos)))
+        case "Multiset" => multisetType.map(_(PReserved(PKw.Multiset)(pos)))
+        case "Map" => mapType.map(_(PReserved(PKw.Map)(pos)))*/
+    }
+  ).pos)
 
   def domainTyp[$: P]: P[PDomainType] = P((idnref[$, PTypeDeclaration] ~~~ typeList(typ).lw.?) map (PDomainType.apply _).tupled).pos
 

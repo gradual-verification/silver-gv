@@ -100,7 +100,7 @@ object Expressions {
   def asBooleanExp(e: Exp): Exp = {
     e.transform({
       case _: AccessPredicate | _: MagicWand => TrueLit()()
-      case fa@Forall(vs,ts,body) => Forall(vs, ts, asBooleanExp(body))(fa.pos, fa.info, fa.errT)
+      case fa@Forall(vs,ts,body,low,up) => Forall(vs, ts, asBooleanExp(body),low,up)(fa.pos, fa.info, fa.errT)
       case Unfolding(_, exp) => asBooleanExp(exp)
       case Applying(_, exp) => asBooleanExp(exp)
       case ass@Asserting(a, exp) => Asserting(asBooleanExp(a), asBooleanExp(exp))(ass.pos, ass.info, ass.errT)

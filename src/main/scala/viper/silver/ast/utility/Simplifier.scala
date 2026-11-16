@@ -98,7 +98,7 @@ object Simplifier {
       case root@CondExp(condition, ifTrue, TrueLit()) =>
         Implies(condition, ifTrue)(root.pos, root.info)
 
-      case root@Forall(_, _, BoolLit(literal)) =>
+      case root@Forall(_, _, BoolLit(literal), _, _) =>
         BoolLit(literal)(root.pos, root.info)
       case root@Exists(_, _, BoolLit(literal)) =>
         BoolLit(literal)(root.pos, root.info)

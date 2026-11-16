@@ -327,6 +327,7 @@ object PDomainFunctionArg {
 
 /** Any `var: Type` style binding, only useful during parsing and therefore not a `PNode`. */
 case class PIdnTypeBinding(idndef: PIdnDef, c: PSym.Colon, typ: PType)(val pos: (Position, Position))
+case class PIdnTypeBindingQuant(idndef: PIdnDef, c: PSym.Colon, typ: PType, from: PKw.In, start: PExp, to: PKw.To, end: PExp)(val pos: (Position, Position))
 
 /** Anything that can be `PIdnUse`d as an expression (e.g. the receiver of a `PFieldAccess`). */
 sealed trait PTypedVarDecl extends PTypedDeclaration with PDeclarationInner with PPrettySubnodes {
@@ -356,6 +357,13 @@ case class PLogicalVarDecl(idndef: PIdnDef, c: PSym.Colon, typ: PType)(val pos: 
 object PLogicalVarDecl {
   def apply(d: PIdnTypeBinding): PLogicalVarDecl = PLogicalVarDecl(d.idndef, d.c, d.typ)(d.pos)
 }
+
+case class PBoundedLogicalVarDecl(idndef: PIdnDef, c: PSym.Colon, typ: PType, from: PKw.In ,start: PExp , to: PKw.To, end: PExp)(val pos: (Position,Position)) extends PTypedVarDecl with PLocalDeclaration with PScopeUniqueDeclaration
+object PBoundedLogicalVarDecl
+{
+  def apply(d: PIdnTypeBindingQuant): PBoundedLogicalVarDecl = PBoundedLogicalVarDecl(d.idndef, d.c, d.typ, d.from, d.start, d.to, d.end)(d.pos)
+}
+
 /** Declaration of a local variable. */
 case class PLocalVarDecl(idndef: PIdnDef, c: PSym.Colon, typ: PType)(val pos: (Position, Position)) extends PAssignableVarDecl with PLocalDeclaration with PScopeUniqueDeclaration
 object PLocalVarDecl {
@@ -1105,7 +1113,7 @@ case class PAsserting(asserting: PKwOp.Asserting, a: PExp, in: PKwOp.In, exp: PE
 }
 
 sealed trait PBinder extends PExp with PScope {
-  def boundVars: Seq[PLogicalVarDecl]
+  def boundVars: Seq[PTypedVarDecl]
 
   def body: PExp
 
@@ -1127,14 +1135,17 @@ case class PTrigger(exp: PDelimited.Comma[PSym.Brace, PExp])(val pos: (Position,
 sealed trait PQuantifier extends PBinder {
   def keyword: PReserved[PKeywordLang]
   def c: PSym.ColonColon
-  def vars: PDelimited[PLogicalVarDecl, PSym.Comma]
+  def vars: PDelimited[PTypedVarDecl, PSym.Comma]
   def triggers: Seq[PTrigger]
   override def boundVars = vars.toSeq
 }
 
+
 case class PExists(keyword: PKw.Exists, vars: PDelimited[PLogicalVarDecl, PSym.Comma], c: PSym.ColonColon, triggers: Seq[PTrigger], body: PExp)(val pos: (Position, Position)) extends PQuantifier
 
 case class PForall(keyword: PKw.Forall, vars: PDelimited[PLogicalVarDecl, PSym.Comma], c: PSym.ColonColon, triggers: Seq[PTrigger], body: PExp)(val pos: (Position, Position)) extends PQuantifier
+
+case class PBoundedForall(keyword: PKw.Forall, vars: PDelimited[PBoundedLogicalVarDecl, PSym.Comma], c: PSym.ColonColon, triggers: Seq[PTrigger], body: PExp)(val pos: (Position, Position)) extends PQuantifier
 
 case class PForPerm(keyword: PKw.Forperm, vars: PDelimited[PLogicalVarDecl, PSym.Comma], accessRes: PGrouped[PSym.Bracket, PResourceAccess], c: PSym.ColonColon, body: PExp)(val pos: (Position, Position)) extends PQuantifier {
   val triggers: Seq[PTrigger] = Seq()

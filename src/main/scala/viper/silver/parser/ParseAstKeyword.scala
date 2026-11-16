@@ -181,6 +181,11 @@ object PKw {
   }
   type New = PReserved[New.type]
 
+  case object In extends PKw("in") with PKeywordLang with PKeywordAtom
+  type In = PReserved[In.type]
+  case object To extends PKw("to") with PKeywordLang with PKeywordAtom
+  type To = PReserved[To.type]
+
   case object Lhs extends PKw("lhs") with PKeywordLang {
     override def rightPad = ""
   }

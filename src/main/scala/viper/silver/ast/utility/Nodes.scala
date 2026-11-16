@@ -91,7 +91,7 @@ object Nodes {
           case CondExp(cond, thn, els) => Seq(cond, thn, els)
           case Let(v, exp, body) => Seq(v, exp, body)
           case Exists(v, triggers, exp) => v ++ triggers ++ Seq(exp)
-          case Forall(v, triggers, exp) => v ++ triggers ++ Seq(exp)
+          case Forall(v, triggers, exp,low,up) => v ++ triggers ++ Seq(exp) ++ low ++ up
           case ForPerm(v, resource, exp) => v :+ resource :+ exp
           case InhaleExhaleExp(in, ex) => Seq(in, ex)
           case ImpreciseExp(e) => Seq(e)
